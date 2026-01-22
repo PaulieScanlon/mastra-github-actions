@@ -73,22 +73,15 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Comment on PR
-        if: steps.check.outputs.has_issues == 'true'
+        if: steps.changed-files.outputs.files != ''
         uses: actions/github-script@v7
         env:
           RESULTS: ${{ steps.check.outputs.results }}
+          HAS_ISSUES: ${{ steps.check.outputs.has_issues }}
         with:
           script: |
-            const logsUrl = `${context.payload.repository.html_url}/actions/runs/${context.runId}`;
             const identifier = '<!-- blog-check: style-review -->';
-            const body = [
-              identifier,
-              '## 📝 Blog Style Review',
-              '',
-              process.env.RESULTS,
-              '',
-              `📋 [View workflow logs](${logsUrl})`
-            ].join('\n');
+            const hasIssues = process.env.HAS_ISSUES === 'true';
 
             try {
               const { data: comments } = await github.rest.issues.listComments({
@@ -99,21 +92,40 @@ jobs:
 
               const existingComment = comments.find(comment => comment.body.includes(identifier));
 
-              if (existingComment) {
-                await github.rest.issues.updateComment({
+              if (hasIssues) {
+                const logsUrl = `${context.payload.repository.html_url}/actions/runs/${context.runId}`;
+                const body = [
+                  identifier,
+                  '## 📝 Blog Style Review',
+                  '',
+                  process.env.RESULTS,
+                  '',
+                  `📋 [View workflow logs](${logsUrl})`
+                ].join('\n');
+
+                if (existingComment) {
+                  await github.rest.issues.updateComment({
+                    comment_id: existingComment.id,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: body
+                  });
+                } else {
+                  await github.rest.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: body
+                  });
+                }
+              } else if (existingComment) {
+                // Delete the comment when all issues are resolved
+                await github.rest.issues.deleteComment({
                   comment_id: existingComment.id,
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  body: body
-                });
-              } else {
-                await github.rest.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: body
                 });
               }
             } catch (error) {
-              console.error('Failed to post comment:', error);
+              console.error('Failed to manage comment:', error);
             }
