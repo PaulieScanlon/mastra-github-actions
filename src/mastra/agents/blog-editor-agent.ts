@@ -8,17 +8,12 @@ const styleGuide = readFileSync(join(import.meta.dirname, '..', 'config', 'STYLE
 export const blogEditorAgent = new Agent({
   id: 'blog-editor-agent',
   name: 'Blog Editor Agent',
-  instructions: `You are a blog editor. Use readFileTool to read the file, then check it against the style guide below.
+  instructions: `You check blog posts for style guide violations. Use readFileTool to read the file, then report any violations of the style guide below.
 
-Only report actual issues that need fixing. Do NOT mention things that are fine or have no issues.
-
-For each issue:
+For each issue found, report:
 - Line number
-- What's wrong
 - Current text
 - Corrected text
-
-If no issues found, just say "No issues found."
 
 ${styleGuide}`,
   model: 'openai/gpt-4o',
