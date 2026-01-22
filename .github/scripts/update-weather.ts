@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { mastra } from '../../src/mastra/index.js';
 import { readFileSync, writeFileSync } from 'fs';
 
