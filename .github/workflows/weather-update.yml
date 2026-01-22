@@ -1,9 +1,10 @@
 name: Update Weather
 
 on:
-  schedule:
-    - cron: "0 */6 * * *" # Run every 6 hours
-  workflow_dispatch: # Manual trigger
+  workflow_dispatch:
+
+env:
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
 permissions:
   contents: write
@@ -13,17 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "lts/*"
           cache: "npm"
 
+      # Install dependencies from lockfile exactly as specified
       - run: npm ci
 
       - name: Run Weather Agent
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: npx tsx .github/scripts/update-weather.ts
 
       - name: Commit and Push
