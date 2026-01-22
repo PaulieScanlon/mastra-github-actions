@@ -22,7 +22,7 @@ jobs:
       # Install dependencies from lockfile exactly as specified
       - run: npm ci
 
-      - name: Run Weather Agent
+      - name: Update Weather
         run: npx tsx .github/scripts/update-weather.ts
 
       - name: Commit and Push

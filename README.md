@@ -1,5 +1,5 @@
 # Weather
 
-| Weather | Date |
-|---------|------|
-| The current weather in London is 🌦 with a temperature of about 9°C. | 2026-01-22T11:31:51.527Z |
+| Report | Summary | Date |
+|--------|---------|------|
+| London: 🌦   +9°C | It's currently 9°C in London with light rain showers. | Thu, 22 Jan 2026, 11:48 |
