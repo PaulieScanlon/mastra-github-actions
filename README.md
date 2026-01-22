@@ -25,3 +25,13 @@ If you're new to AI agents, check out our [course](https://mastra.ai/course) and
 [Mastra Cloud](https://cloud.mastra.ai/) gives you a serverless agent environment with atomic deployments. Access your agents from anywhere and monitor performance. Make sure they don't go off the rails with evals and tracing.
 
 Check out the [deployment guide](https://mastra.ai/docs/deployment/overview) for more details.
+
+<!-- WEATHER_START -->
+## 🌤️ Current Weather
+
+| Location | Updated |
+|----------|---------|
+| San Francisco | _Awaiting first run_ |
+
+_Weather data will be populated by the GitHub Action._
+<!-- WEATHER_END -->
