@@ -10,10 +10,14 @@ export const blogEditorAgent = new Agent({
   name: 'Blog Editor Agent',
   instructions: `You check blog posts for style guide violations. Use readFileTool to read the file, then report any violations of the style guide below.
 
-For each issue found, report:
+CRITICAL: Before reporting any issue, verify that the corrected text is DIFFERENT from the current text. If they are the same, DO NOT report it - it means there is no issue.
+
+For each genuine issue where the corrected text differs from current text:
 - Line number
 - Current text
 - Corrected text
+
+If no issues are found (or all "issues" have identical current/corrected text), respond with: "No issues found."
 
 ${styleGuide}`,
   model: 'openai/gpt-4o',
