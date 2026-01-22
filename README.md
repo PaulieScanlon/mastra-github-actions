@@ -1,9 +1,5 @@
-# mastra-github-actions
+# Weather
 
-<!-- WEATHER_START -->
-## 🌤️ Current Weather
-
-| Location | Weather | Updated |
-|----------|---------|---------|
-| San Francisco | _Awaiting first run_ | - |
-<!-- WEATHER_END -->
+| Weather | Date |
+|---------|------|
+| The current weather in London is 🌦 with a temperature of about 9°C. | 2026-01-22T11:31:51.527Z |
