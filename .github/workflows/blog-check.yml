@@ -75,10 +75,12 @@ jobs:
       - name: Comment on PR
         if: steps.changed-files.outputs.files != ''
         uses: actions/github-script@v7
+        env:
+          RESULTS: ${{ steps.check.outputs.results }}
         with:
           script: |
-            const results = `${{ steps.check.outputs.results }}`;
-            if (results.trim()) {
+            const results = process.env.RESULTS;
+            if (results && results.trim()) {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
