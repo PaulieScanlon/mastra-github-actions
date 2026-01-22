@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       file:
-        description: "Blog post file to check (e.g., src/app/blog/posts/changelog-2025-09-25.mdx)"
+        description: "Blog post file to check"
         required: true
         type: string
 
@@ -19,24 +19,19 @@ permissions:
   pull-requests: write
 
 jobs:
-  # Manual run - just log output
   manual-check:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
           cache: "npm"
-
       - run: npm ci
-
       - name: Check blog post
         run: npx tsx .github/scripts/check-blog.ts "${{ inputs.file }}"
 
-  # PR run - comment on PR
   pr-check:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -63,28 +58,62 @@ jobs:
         if: steps.changed-files.outputs.files != ''
         run: |
           RESULTS=""
+          HAS_ISSUES=false
           for file in ${{ steps.changed-files.outputs.files }}; do
             echo "Checking $file..."
             OUTPUT=$(npx tsx .github/scripts/check-blog.ts "$file" 2>&1) || true
-            RESULTS="$RESULTS\n\n## $file\n\n$OUTPUT"
+            if [[ "$OUTPUT" != *"No issues found"* ]]; then
+              HAS_ISSUES=true
+              RESULTS="$RESULTS\n\n## $file\n\n$OUTPUT"
+            fi
           done
+          echo "has_issues=$HAS_ISSUES" >> $GITHUB_OUTPUT
           echo "results<<EOF" >> $GITHUB_OUTPUT
           echo -e "$RESULTS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Comment on PR
-        if: steps.changed-files.outputs.files != ''
+        if: steps.check.outputs.has_issues == 'true'
         uses: actions/github-script@v7
         env:
           RESULTS: ${{ steps.check.outputs.results }}
         with:
           script: |
-            const results = process.env.RESULTS;
-            if (results && results.trim()) {
-              await github.rest.issues.createComment({
+            const logsUrl = `${context.payload.repository.html_url}/actions/runs/${context.runId}`;
+            const identifier = '<!-- blog-check: style-review -->';
+            const body = [
+              identifier,
+              '## 📝 Blog Style Review',
+              '',
+              process.env.RESULTS,
+              '',
+              `📋 [View workflow logs](${logsUrl})`
+            ].join('\n');
+
+            try {
+              const { data: comments } = await github.rest.issues.listComments({
+                issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: `# Blog Post Review\n\n${results}`
               });
+
+              const existingComment = comments.find(comment => comment.body.includes(identifier));
+
+              if (existingComment) {
+                await github.rest.issues.updateComment({
+                  comment_id: existingComment.id,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: body
+                });
+              } else {
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: body
+                });
+              }
+            } catch (error) {
+              console.error('Failed to post comment:', error);
             }
