@@ -58,16 +58,11 @@ jobs:
         if: steps.changed-files.outputs.files != ''
         run: |
           RESULTS=""
-          HAS_ISSUES=false
           for file in ${{ steps.changed-files.outputs.files }}; do
             echo "Checking $file..."
             OUTPUT=$(npx tsx .github/scripts/check-blog.ts "$file" 2>&1) || true
-            if [[ "$OUTPUT" != *"No issues found"* ]]; then
-              HAS_ISSUES=true
-              RESULTS="$RESULTS\n\n## $file\n\n$OUTPUT"
-            fi
+            RESULTS="$RESULTS\n\n## $file\n\n$OUTPUT"
           done
-          echo "has_issues=$HAS_ISSUES" >> $GITHUB_OUTPUT
           echo "results<<EOF" >> $GITHUB_OUTPUT
           echo -e "$RESULTS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -77,55 +72,39 @@ jobs:
         uses: actions/github-script@v7
         env:
           RESULTS: ${{ steps.check.outputs.results }}
-          HAS_ISSUES: ${{ steps.check.outputs.has_issues }}
         with:
           script: |
             const identifier = '<!-- blog-check: style-review -->';
-            const hasIssues = process.env.HAS_ISSUES === 'true';
+            const logsUrl = `${context.payload.repository.html_url}/actions/runs/${context.runId}`;
+            const body = [
+              identifier,
+              '## 📝 Blog Style Review',
+              '',
+              process.env.RESULTS,
+              '',
+              `📋 [View workflow logs](${logsUrl})`
+            ].join('\n');
 
-            try {
-              const { data: comments } = await github.rest.issues.listComments({
+            const { data: comments } = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            const existingComment = comments.find(comment => comment.body.includes(identifier));
+
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                comment_id: existingComment.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
+                body: body
               });
-
-              const existingComment = comments.find(comment => comment.body.includes(identifier));
-
-              if (hasIssues) {
-                const logsUrl = `${context.payload.repository.html_url}/actions/runs/${context.runId}`;
-                const body = [
-                  identifier,
-                  '## 📝 Blog Style Review',
-                  '',
-                  process.env.RESULTS,
-                  '',
-                  `📋 [View workflow logs](${logsUrl})`
-                ].join('\n');
-
-                if (existingComment) {
-                  await github.rest.issues.updateComment({
-                    comment_id: existingComment.id,
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    body: body
-                  });
-                } else {
-                  await github.rest.issues.createComment({
-                    issue_number: context.issue.number,
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    body: body
-                  });
-                }
-              } else if (existingComment) {
-                // Delete the comment when all issues are resolved
-                await github.rest.issues.deleteComment({
-                  comment_id: existingComment.id,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                });
-              }
-            } catch (error) {
-              console.error('Failed to manage comment:', error);
             }
