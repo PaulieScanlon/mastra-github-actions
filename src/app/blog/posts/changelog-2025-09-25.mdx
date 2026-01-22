@@ -1,0 +1,47 @@
+---
+title: "Mastra Changelog 2025-09-25"
+publishedAt: "2025-09-25"
+author: "Shane Thomas"
+summary: "New streaming architecture, scoring improvements, and more."
+draft: false
+categories: "changelogs"
+---
+
+This week we're laying the groundwork for our new streaming architecture (coming the week of September 28!), plus shipping tool suspension for approval workflows and significant improvements to scoring and observability.
+
+**Release:** `@mastra/core@0.18.0`
+
+Let's dive in:
+
+## Preview: The Next Evolution of Mastra Streaming
+
+We're preparing a significant update to how streaming works in Mastra. Starting with v0.19.0, we're making our battle-tested `streamVNext` and `generateVNext` functions the new defaults, replacing the current `stream` and `generate` implementations.
+
+The new streaming protocol enables:
+
+- **Nested streaming that just works**: Agent calls compose naturally, whether direct or through workflows
+- **Long-running tool progress**: Tools can stream updates without blocking the entire operation
+- **Frontend flexibility**: New `format` option lets Mastra output streams for any UI framework, starting with AI SDK v5
+
+Read the [full announcement](https://mastra.ai/blog/mastra-streaming) for the complete story behind this evolution.
+
+## Other Notable Updates
+
+- **Agent Instructions:** Now support full `SystemMessage` types for more flexible and structured instruction formats ([PR #7987](https://github.com/mastra-ai/mastra/pull/7987))
+- **TanStack Query Migration:** Replaced all SWR usage with TanStack Query for improved caching and error handling ([PR #7931](https://github.com/mastra-ai/mastra/pull/7931))
+- **Type-Safe Scorers:** Added 'type' parameter to scorer creation for automatic typing of inputs/outputs ([PR #8032](https://github.com/mastra-ai/mastra/pull/8032))
+- **Trace Scoring:** New server APIs and client SDK for scoring traces ([PR #8064](https://github.com/mastra-ai/mastra/pull/8064))
+- **Batch Trace Scoring:** Added configurable batch scoring system with event-based workflow support ([PR #8033](https://github.com/mastra-ai/mastra/pull/8033))
+- **PgVector AWS RDS:** Fixed vector type qualification for custom schemas with proper pgvector extension detection ([PR #8070](https://github.com/mastra-ai/mastra/pull/8070))
+- **Memory Performance:** Fixed PGVector adapter index recreation issue causing chat disruptions ([PR #8020](https://github.com/mastra-ai/mastra/pull/8020))
+- **Observability Fixes:** Fixed orphaned spans in Braintrust exporter ([PR #7660](https://github.com/mastra-ai/mastra/pull/7660)) and span loss bug in Langfuse exporter ([PR #8104](https://github.com/mastra-ai/mastra/pull/8104))
+- **Tool Output Display:** Added tool output visibility in streamVNext ([PR #7983](https://github.com/mastra-ai/mastra/pull/7983))
+- **Type System:** Enhanced agent output types with mutual exclusivity between 'output' and 'structuredOutput' ([PR #7969](https://github.com/mastra-ai/mastra/pull/7969))
+
+For the complete list of changes, check out the [full release notes](https://github.com/mastra-ai/mastra/releases/tag/%40mastra%2Fcore%400.18.0).
+
+## What's Next
+
+The team is focusing on expanding the tool approval workflows and continuing to improve type safety across the framework. We're also working on performance optimizations for large-scale deployments.
+
+Happy building! 🚀

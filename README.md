@@ -1,3 +1,17 @@
-# Weather
+# Blog Editor
 
-The current weather in London is overcast with a temperature of 9.3°C, feeling like 6.4°C. The humidity is 82%, and there's a wind speed of 14 km/h with gusts up to 31.7 km/h.
+Check blog posts for spelling, grammar, and style guide compliance.
+
+## Usage
+
+```bash
+npx tsx .github/scripts/check-blog.ts <file-path>
+```
+
+## Example
+
+```bash
+npx tsx .github/scripts/check-blog.ts src/app/blog/posts/changelog-2026-01-20.mdx
+npx tsx .github/scripts/check-blog.ts src/app/blog/posts/changelog-2025-04-24.mdx
+npx tsx .github/scripts/check-blog.ts src/app/blog/posts/changelog-2025-09-25.mdx
+```

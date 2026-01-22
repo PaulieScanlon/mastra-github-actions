@@ -1,0 +1,64 @@
+---
+title: "Mastra Changelog 2025-06-06"
+publishedAt: "2025-06-06"
+summary: "Mastra 101, Mastra Auth, and more"
+author: "Shane Thomas"
+draft: false
+categories: "changelogs"
+---
+
+
+
+
+It’s been a packed week at Mastra. We’re at the AI Engineer’s World Fair giving away fresh copies of Principles of Building AI Agents, 2nd edition. We also released a new course. Let’s dig in…
+
+## Mastra 101
+
+We released the first ever MCP-based, IDE-native course: Mastra 101. 
+
+Now you can learn all about agents, workflows, MCP, etc., all through your agentic code editor — no videos, books, websites, or apps needed.
+
+![Mastra 101 course demo](/mastracourse.gif)
+
+ 
+Just hook up the Mastra MCP docs server to your code editor and type `Start Mastra course` to get going.
+
+[More instructions and details here](https://mastra.ai/blog/mastra-101). 
+
+## Mastra Auth
+
+We released Mastra Auth with support for Auth0, WorkOS, Clerk, Firebase, and Supabase.
+
+![Mastra Auth demo](/weather-chat.gif)
+
+The new `@mastra/auth` package implements JWT authentication with core utilities and provider classes.
+
+We also introduces an abstract `MastraAuthProvider` class. This class establishes a foundation for implementing custom authentication providers and managing protected routes.
+
+## Workflows
+
+We introduced a handful of improvements to workflow this week:
+
+- You can now display the step status for a multi-step nested workflows ([#4505](https://github.com/mastra-ai/mastra/pull/4505)).
+- You can directly link and preselect traces from a workflow step by clicking on it ([#4496](https://github.com/mastra-ai/mastra/pull/4496)).
+
+We are hopeful these upgrades will make it easier to design, debug, and iterate on complex workflows. 
+
+## Memory
+
+There are two big memory updates this week.
+
+First, we fixed image handling in the playground. Now your agents can interpret and engage with image data. This fix was handled by modifying how attachments and messages are processed and ensuring proper display of images retrieved from memory.
+
+![Memory image handling](/memoryimage.png)
+
+Second, we refactored our message processing logic to make it easier to store richer internal representations of messages. We then output that representation into UIMessage format. This change lays the groundwork for AI SDK V5 support.
+
+## Other updates
+
+- We added `RuntimeContext` support to tools and agents in workflow steps ([#4539](https://github.com/mastra-ai/mastra/pull/4539)).
+- We released a new feature that allows users to set a `runtimeContext` in AGUI when using CopilotKit. The feature also updates the documentation accordingly ([#4501](https://github.com/mastra-ai/mastra/pull/4501)).
+- We now support  database-specific configuration in `createVectorQueryTool` for RAG, allowing both static and runtime overrides ([#4552](https://github.com/mastra-ai/mastra/pull/4552)).
+- We built-in backward compatibility logic to all storage adapters for public storage APIs. This  addresses typecheck issues introduced by recent changes to UIMessages handling ([#4530](https://github.com/mastra-ai/mastra/pull/4530)).
+
+Find the full release log [here](https://github.com/mastra-ai/mastra/releases/tag/%40mastra%2Fcore%400.10.2).

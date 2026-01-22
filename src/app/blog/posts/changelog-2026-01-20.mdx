@@ -1,0 +1,304 @@
+---
+title: "Mastra Changelog 2026-01-20"
+publishedAt: "2026-01-20"
+author: "Shane Thomas"
+summary: "Server adapters, composite storage, processor system overhaul, AI SDK v6 support, thread cloning, and more."
+draft: false
+categories: "changelogs"
+---
+
+Mastra 1.0.0 is here. This release includes architectural changes and major features that improve how you deploy, configure, and use Mastra.
+
+**Release:** `@mastra/core@1.0.0`
+
+We prepared automated codemods for most breaking changes. Run all v1 codemods at once:
+
+```shell
+npx @mastra/codemod@latest v1
+```
+
+See the [migration guide](https://mastra.ai/guides/migrations/upgrade-to-v1/overview) for detailed instructions.
+
+Let's dive in:
+
+### Server Adapters
+
+[Server Adapters](https://mastra.ai/docs/server/server-adapters) automatically expose your agents, workflows, tools, and MCP servers as HTTP endpoints on the server you’re already running.
+
+Mastra 1.0 introduces several adapter packages that make running Mastra inside an existing Express, Hono, Fastify or Koa app much easier to set up and maintain.
+
+- [@mastra/express](https://mastra.ai/reference/server/express-adapter): Express server adapter
+- [@mastra/hono](https://mastra.ai/reference/server/hono-adapter): Hono server adapter
+- [@mastra/fastify](https://mastra.ai/reference/server/fastify-adapter): Fastify server adapter
+- [@mastra/koa](https://mastra.ai/reference/server/koa-adapter): Koa server adapter
+
+Pass your Express `app` and `mastra` instance to the `MastraServer` constructor, call `init()`, and all Mastra endpoints are registered automatically alongside your existing routes. Here’s an example using the Express adapter:
+
+```typescript
+import express from "express";
+import { MastraServer } from "@mastra/express";
+import { mastra } from "./mastra";
+
+const app = express();
+const server = new MastraServer({ app, mastra });
+await server.init();
+
+app.listen(3001);
+```
+
+Running Mastra as its own server works great for many use cases, but it creates an extra process to deploy, monitor, log, and secure. Server Adapters remove that overhead.
+
+Server Adapters are best suited for teams who already have a standalone server. ([PR #10263](https://github.com/mastra-ai/mastra/pull/10263), [PR #11568](https://github.com/mastra-ai/mastra/pull/11568))
+
+For teams integrating Mastra into a Next.js or other fullstack application, `mastra build` remains the recommended approach.
+
+
+
+## Composite Storage
+
+1.0 introduces per-domain storage configuration, replacing the single-storage model.
+
+Previously, Mastra used one storage backend for all domains (memory, workflows, scores, observability). This forced tradeoffs: Postgres for workflows meant Postgres for everything, even when a lighter option fit better.
+
+Composite storage lets you choose the right backend per domain:
+
+```typescript
+import { MastraCompositeStore } from "@mastra/core/storage";
+import { WorkflowsPG, ScoresPG } from "@mastra/pg";
+import { MemoryLibSQL } from "@mastra/libsql";
+
+const storage = new MastraCompositeStore({
+  id: "composite",
+  domains: {
+    memory: new MemoryLibSQL({ url: "file:./local.db" }),
+    workflows: new WorkflowsPG({ connectionString: process.env.DATABASE_URL }),
+    scores: new ScoresPG({ connectionString: process.env.DATABASE_URL }),
+  },
+});
+```
+
+Use Postgres for workflows, LibSQL for memory, ClickHouse for columnar observability data, or align with your existing databases. This makes cost, latency, and operational tradeoffs explicit per domain instead of global.
+
+Single-storage configurations remain supported, but composite storage is recommended for production deployments where different domains have different requirements. ([PR #11401](https://github.com/mastra-ai/mastra/pull/11401))
+
+## Processor System Overhaul
+
+Intervene at every step of the agent loop. Input and output processors can now intercept, transform, retry, or short-circuit execution with clearer semantics, improved tripwires, and `processInputStep` integration.
+
+Processors can now be composed using workflow primitives, enabling complex moderation pipelines, parallel validation, and sophisticated guardrails. The new `processOutputStep` method runs after every step in the agentic loop, allowing you to validate responses before tool execution.
+
+Tripwires now support retry mechanisms with LLM feedback. Processors can request retries with metadata that gets sent back to the LLM for self-correction. ([PR #10947](https://github.com/mastra-ai/mastra/pull/10947), [PR #10774](https://github.com/mastra-ai/mastra/pull/10774))
+
+## AI SDK v6 Support
+
+1.0 adds full support for AI SDK v6, including LanguageModelV3 models and ToolLoopAgent.
+
+Previously, Mastra supported AI SDK v5 (LanguageModelV1/V2). As v6 introduced LanguageModelV3 with a different API, Mastra needed updates to support the latest SDK.
+
+You can now use LanguageModelV3 models and ToolLoopAgent directly:
+
+```typescript
+import { openai } from '@ai-sdk/openai';
+import { ToolLoopAgent } from 'ai';
+import { Mastra } from '@mastra/core';
+
+const toolLoopAgent = new ToolLoopAgent({
+  model: openai('gpt-4o'), // LanguageModelV3
+  tools: { weather: weatherTool },
+});
+
+const mastra = new Mastra({
+  agents: { toolLoopAgent },
+});
+```
+
+V3's nested usage format is normalized to Mastra's flat format, with reasoning tokens and cached input tokens preserved. All existing V1 and V2 models continue to work unchanged, this is fully backward compatible. ([PR #11191](https://github.com/mastra-ai/mastra/pull/11191), [PR #11254](https://github.com/mastra-ai/mastra/pull/11254))
+
+## Thread Cloning
+
+Duplicate conversation threads to branch interactions, test changes, or power emerging multi-path UI patterns in consumer and internal tools.
+
+```typescript
+// Clone a thread
+const { thread, clonedMessages } = await memory.cloneThread({
+  sourceThreadId: 'thread-123',
+  title: 'My Clone',
+  options: {
+    messageLimit: 10, // optional: only copy last N messages
+  },
+});
+
+// Check if a thread is a clone
+if (memory.isClone(thread)) {
+  const source = await memory.getSourceThread(thread.id);
+}
+
+// List all clones of a thread
+const clones = await memory.listClones('thread-123');
+```
+
+Includes storage implementations for InMemory, PostgreSQL, LibSQL, and Upstash, plus a new API endpoint and clone button in the playground UI. Embeddings are created for cloned messages, enabling semantic recall across branches. ([PR #11517](https://github.com/mastra-ai/mastra/pull/11517))
+
+## Agent Networks
+
+Agent networks now support structured output, human-in-the-loop workflows, and completion validation:
+
+- **Structured Output** ([PR #11701](https://github.com/mastra-ai/mastra/pull/11701)): Pass a Zod schema to `agent.network()` to get typed results from multi-agent execution
+- **Human-in-the-Loop** ([PR #11678](https://github.com/mastra-ai/mastra/pull/11678)): Suspend/resume capabilities and tool approval workflows for agent networks via `agent.resumeNetwork()`, `agent.approveNetworkToolCall()`, and `agent.declineNetworkToolCall()`
+- **Completion Validation** ([PR #11562](https://github.com/mastra-ai/mastra/pull/11562)): Use custom scorers to validate network completion
+
+## Stored Agents
+
+Agents can now be stored in the database and loaded at runtime ([PR #10953](https://github.com/mastra-ai/mastra/pull/10953)):
+
+```typescript
+await mastra.getStorage().createAgent({
+  agent: {
+    id: 'my-agent',
+    name: 'My Agent',
+    instructions: 'You are helpful',
+    model: { provider: 'openai', name: 'gpt-4' },
+    tools: { myTool: {} },
+  },
+});
+
+const agent = await mastra.getStoredAgentById('my-agent');
+const response = await agent.generate('Hello!');
+```
+
+## Human-in-the-Loop for generate()
+
+Tool approval with `requireToolApproval` now works with `generate()`, not just `stream()` ([PR #12056](https://github.com/mastra-ai/mastra/pull/12056)):
+
+```typescript
+const output = await agent.generate('Find user John', {
+  requireToolApproval: true,
+});
+
+if (output.finishReason === 'suspended') {
+  const result = await agent.approveToolCallGenerate({
+    runId: output.runId,
+    toolCallId: output.suspendPayload.toolCallId,
+  });
+}
+```
+
+## Workflow Improvements
+
+Expanded workflow control with several new capabilities:
+
+- **startAsync()** ([PR #11093](https://github.com/mastra-ai/mastra/pull/11093)): Fire-and-forget workflow execution that returns immediately with a runId after sending the event to Inngest
+- **Per-step execution** ([PR #11276](https://github.com/mastra-ai/mastra/pull/11276)): Run just a single step instead of the entire workflow
+- **onError / onFinish callbacks** ([PR #11200](https://github.com/mastra-ai/mastra/pull/11200)): Lifecycle callbacks for server-side handling of workflow completion and errors
+- **Inngest cron scheduling** ([PR #11518](https://github.com/mastra-ai/mastra/pull/11518)): Automatically trigger workflows on a schedule with optional `inputData` and `initialState`
+
+## Unified Observability Schema
+
+Spans now use a unified identification model with `entityId`, `entityType`, and `entityName` instead of separate `agentId`, `toolId`, `workflowId` fields.
+
+The new `listTraces()` API enables powerful filtering, pagination, and sorting across all entity types:
+
+```typescript
+const { spans, pagination } = await storage.listTraces({
+  filters: {
+    entityType: EntityType.AGENT,
+    entityId: 'my-agent',
+    userId: 'user-123',
+    environment: 'production',
+    status: TraceStatus.SUCCESS,
+    startedAt: { start: new Date('2024-01-01'), end: new Date('2024-01-31') },
+  },
+  pagination: { page: 0, perPage: 50 },
+  orderBy: { field: 'startedAt', direction: 'DESC' },
+});
+```
+
+SQL-based stores automatically add new columns to existing `spans` tables on initialization. Existing data is preserved with new columns set to `NULL`. ([PR #11132](https://github.com/mastra-ai/mastra/pull/11132))
+
+## Memory API Changes
+
+The Memory API has been simplified and defaults updated:
+
+**API Simplification** ([PR #9701](https://github.com/mastra-ai/mastra/pull/9701)):
+- `rememberMessages()` removed (was duplicating `query()` functionality)
+- `query()` renamed to `recall()` for clarity
+
+```typescript
+memory.recall({ threadId, resourceId, perPage, vectorSearchString, threadConfig });
+```
+
+**Default Scope Changed** ([PR #8983](https://github.com/mastra-ai/mastra/pull/8983)): Both `workingMemory.scope` and `semanticRecall.scope` now default to `'resource'` instead of `'thread'`. This means working memory and semantic recall persist across all conversations for the same user. To maintain thread-scoped behavior, explicitly set `scope: 'thread'`.
+
+**Default Settings Updated**: `lastMessages` default decreased from 40 to 10, `semanticRecall` disabled by default, and thread title generation disabled by default.
+
+## Context-Aware ID Generation
+
+The `idGenerator` function now receives context about what type of ID is being generated ([PR #10964](https://github.com/mastra-ai/mastra/pull/10964)):
+
+```typescript
+const mastra = new Mastra({
+  idGenerator: context => {
+    if (context?.idType === 'message' && context?.threadId) {
+      return `msg-${context.threadId}-${Date.now()}`;
+    }
+    return crypto.randomUUID();
+  },
+});
+```
+
+## Breaking Changes
+
+**Subpath imports required** ([PR #9544](https://github.com/mastra-ai/mastra/pull/9544)): Top-level imports from `@mastra/core` are no longer allowed except for `Mastra` and `type Config`. Use subpath imports:
+
+```typescript
+import { Mastra } from "@mastra/core";
+import { Agent } from "@mastra/core/agent";
+import { createTool } from "@mastra/core/tools";
+import { createStep } from "@mastra/core/workflows";
+```
+
+**Tool execution signature changed** ([PR #9587](https://github.com/mastra-ai/mastra/pull/9587)):
+
+```typescript
+// Before
+execute: async ({ context }) => { return doSomething(context.data); }
+
+// After
+execute: async (inputData, context) => { return doSomething(inputData); }
+```
+
+Context properties are now organized into namespaces: `context.agent` for agent-specific properties, `context.workflow` for workflow-specific properties, and `context.mcp` for MCP-specific properties.
+
+**Tool output validation** ([PR #9664](https://github.com/mastra-ai/mastra/pull/9664)): Tools with an `outputSchema` now validate their return values at runtime. Invalid output returns a `ValidationError` instead of passing through silently.
+
+**API renames** ([PR #9495](https://github.com/mastra-ai/mastra/pull/9495), [PR #9511](https://github.com/mastra-ai/mastra/pull/9511)):
+- `getAgents()` → `listAgents()`, `getTools()` → `listTools()`, `getWorkflows()` → `listWorkflows()`
+- `RuntimeContext` → `RequestContext`
+
+**Pagination API changes** ([PR #9592](https://github.com/mastra-ai/mastra/pull/9592)): All pagination APIs now use `page`/`perPage` instead of `offset`/`limit`.
+
+**Observability configuration** ([PR #9709](https://github.com/mastra-ai/mastra/pull/9709)): Install `@mastra/observability` and use explicit configuration with `new Observability()` instead of `telemetry:` or `observability: { default: { enabled: true } }`.
+
+**Node.js 22.13.0 minimum** ([PR #9706](https://github.com/mastra-ai/mastra/pull/9706)): Minimum required Node.js version bumped to 22.13.0.
+
+**Database migrations required**: If using PostgreSQL or LibSQL, see the [storage migration guide](https://mastra.ai/guides/migrations/upgrade-to-v1/storage#database-migration) for required schema updates.
+
+## Other Notable Updates
+
+- **Primitive ID Requirements:** Every Mastra primitive (agent, MCPServer, workflow, tool, processor, scorer, vector) now requires an id and has get, list, and add methods ([PR #9675](https://github.com/mastra-ai/mastra/pull/9675))
+- **Zod v4 Preparation:** Removed Zod-specific type constraints across workflows and tools, preparing for Zod v4 migration ([PR #11814](https://github.com/mastra-ai/mastra/pull/11814))
+- **Storage API Updates:** Removed `getMessages()` and `getMessagesPaginated()`, replaced with unified `listMessages()` API supporting `perPage: false` ([PR #9670](https://github.com/mastra-ai/mastra/pull/9670), [PR #9695](https://github.com/mastra-ai/mastra/pull/9695))
+- **Domain-Specific Storage Access:** Storage operations now use `getStore()` pattern: `storage.getStore('memory')`, `storage.getStore('workflows')`, etc. ([PR #11361](https://github.com/mastra-ai/mastra/pull/11361))
+- **Scorer Updates:** Scorers moved under eval domain, now use `MastraDBMessage` instead of `UIMessage` ([PR #9589](https://github.com/mastra-ai/mastra/pull/9589), [PR #9702](https://github.com/mastra-ai/mastra/pull/9702))
+- **Voice Methods Moved:** Voice-related methods moved from Agent class to `agent.voice` namespace: `agent.speak()` → `agent.voice.speak()` ([PR #9257](https://github.com/mastra-ai/mastra/pull/9257))
+- **Structured Output:** `output` option removed, use `structuredOutput: { schema }` instead
+- **Sensitive Data Protection:** New `hideInput` and `hideOutput` options in tracing to protect sensitive information ([PR #11969](https://github.com/mastra-ai/mastra/pull/11969))
+- **Trace Tagging:** BrainTrust and Langfuse exporters now support trace tagging ([PR #10765](https://github.com/mastra-ai/mastra/pull/10765))
+- **TTFT Metrics:** Time-to-first-token support for Langfuse integration ([PR #10781](https://github.com/mastra-ai/mastra/pull/10781))
+
+For changes in other packages, check the `CHANGELOG.md` file in each package directory on [GitHub](https://github.com/mastra-ai/mastra).
+
+That's all for 1.0.0!
+
+Happy building! 🚀
+

@@ -1,0 +1,172 @@
+---
+title: Mastra Changelog 2025-03-27
+publishedAt: "2025-03-27"
+summary: "Mastra's Latest Updates: Nested Workflows, Voice to Voice, and more"
+author: "Shane Thomas"
+draft: false
+categories: "changelogs"
+---
+
+This week brings significant improvements across Mastra's ecosystem, with major updates to workflow capabilities, Mastra Voice, and more.
+
+## **Nested Workflows & Concurrency**
+
+The core package received substantial enhancements to its workflow system. 
+
+You can now give a workflow directly as a step, which makes executing parallel branches easier:
+
+```tsx
+parentWorkflow
+  .step(nestedWorkflowA)
+  .step(nestedWorkflowB)
+  .after([nestedWorkflowA, nestedWorkflowB])
+  .step(finalStep);
+```
+
+Conditional branching is also easier to follow with the new structure that accepts workflows. You can  execute a whole nested workflow, and then continue execution as normal on the next `.then()` ’d step:
+
+```tsx
+// Create nested workflows for different paths
+const workflowA = new Workflow({ name: "workflow-a" })
+  .step(stepA1)
+  .then(stepA2)
+  .commit();
+
+const workflowB = new Workflow({ name: "workflow-b" })
+  .step(stepB1)
+  .then(stepB2)
+  .commit();
+
+// Use the new if-else syntax with nested workflows
+parentWorkflow
+  .step(initialStep)
+  .if(
+    async ({ context }) => {
+      // Your condition here
+      return someCondition;
+    },
+    workflowA, // if branch
+    workflowB, // else branch
+  )
+  .then(finalStep)
+  .commit();
+```
+
+And to pass arguments to nested workflows, you can use variable mappings. 
+
+We also added new workflow result schemas to make it easier to propagate results back from a nested workflow execution back to the parent workflow:
+
+```tsx
+
+ const workflowA = new Workflow({
+	 name: 'workflow-a',
+   result: {
+   schema: z.object({
+	 activities: z.string(),
+   }),
+   mapping: {
+   activities: {
+   step: planActivities,
+   path: 'activities',
+	    },
+	  },
+	},
+})
+  .step(fetchWeather)
+  .then(planActivities)
+  .commit();
+
+const weatherWorkflow = new Workflow({
+  name: 'weather-workflow',
+  triggerSchema: z.object({
+    city: z.string().describe('The city to get the weather for'),
+  }),
+  result: {
+    schema: z.object({
+      activities: z.string(),
+    }),
+    mapping: {
+      activities: {
+        step: workflowA,
+        path: 'result.activities',
+      },
+    },
+  },
+})
+  .step(workflowA, {
+    variables: {
+      city: {
+        step: 'trigger',
+        path: 'city',
+      },
+    },
+  })
+  .step(doSomethingElseStep)
+  .commit();
+```
+
+Check out [our docs](https://mastra.ai/docs/workflows/nested-workflows) to explore all things nested workflows.
+
+## Voice
+
+We [shipped some big changes and new features to Mastra Voice](https://mastra.ai/blog/speech-to-speech). They include: 
+
+- Support for speech to speech providers, with OpenAI Realtime API being our first.
+- Support for WebSocket connections to establish a persistent connection to voice providers (like OpenAI) instead of separate HTTP requests. This enables bidirectional audio streaming without the request-wait-response pattern of traditional HTTP.
+- A new event-driven architecture for voice interactions. Instead of **`const text = await agent.voice.listen(audio)`**, you now use **`agent.voice.on('writing', ({ text }) => { ... })`**, creating a more responsive experience without managing any WebSocket complexity.
+
+Here's an example of setting up a real-time voice agent that can participate in continuous conversations:
+
+```tsx
+import { Agent } from "@mastra/core/agent";
+import { OpenAIRealtimeVoice } from "@mastra/voice-openai-realtime";
+
+const agent = new Agent({
+  name: 'Agent',
+  instructions: `You are a helpful assistant with real-time voice capabilities.`,
+  model: openai('gpt-4o'),
+  voice: new OpenAIRealtimeVoice(),
+});
+
+// Connect to the voice service
+await agent.voice.connect();
+
+// Listen for agent audio responses
+agent.voice.on('speaker', (stream) => {
+  // The 'speaker' can be any audio output implementation that accepts streams for instance, node-speaker
+  stream.pipe(speaker)
+});
+
+// Initiate the conversation by emitting a 'speaking' event
+await agent.voice.speak('How can I help you today?');
+
+// Send continuous audio from microphone
+const micStream = mic.getAudioStream();
+await agent.voice.send(micStream);
+```
+
+Additional details, including code examples of the new event-driven architecture, can be found in our [blog post](https://mastra.ai/blog/speech-to-speech).
+
+## New LLM Provider Options
+
+Both Cerebras and Groq were added as LLM provider options in `create-mastra` expanding the available choices for AI backends. 
+
+## Performance optimizations
+
+Serverless deployments saw improvements like: 
+
+- A marked reduction in bundle sizes. We went from 90mb to 8mb when using memory and our Postgres store
+- Improved deployments to Vercel, Netlify and Cloudflare edge functions
+- Improved cold start times
+
+Find details on our most recent optimizations [here](https://mastra.ai/blog/seamless-edge-deployments). 
+
+## **Memory improvements**
+
+Memory operations also saw notable optimization, like:
+
+- The addition of a [new Mem0 integration](https://mastra.ai/docs/integrations#example-adding-the-mem0-integration) `@mastra/mem0`
+- Improved semantic recall for long message inputs
+- Complete compatibility for using memory with AI SDK's `useChat()` hooks
+
+Stay tuned for more updates next week…

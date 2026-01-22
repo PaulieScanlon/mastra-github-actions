@@ -1,0 +1,173 @@
+---
+title: Mastra Changelog 2025-03-14
+publishedAt: "2025-03-14"
+summary: "Major workflow enhancements, new Mastra Voice features, and more"
+author: "Sam Bhagwat"
+draft: false
+categories: "changelogs"
+---
+
+This week we launched major workflow enhancements, new features to Mastra Voice, and improvements to memory and vector management.
+
+We’re also sharing a preview of `AgentNetwork`, a new multi-agent collaboration system. This feature isn’t fully shipped yet so we are open to feedback.
+
+## Workflow enhancements
+
+There were two major workflow control flow improvements added this week, as well as one experimental one:
+
+**While/Until Loops**: Added new looping constructs that allow steps to repeat until a condition is met.
+
+Here’s a basic workflow with a `while` loop:
+
+```typescript
+workflow
+  .step(incrementStep)
+  .while(async ({ context }) => {
+    // Continue as long as the value is less than 10
+    const result = context.getStepResult<{ value: number }>("increment");
+    return (result?.value ?? 0) < 10;
+  }, incrementStep)
+  .then(finalStep);
+```
+
+And here’s the same workflow using `until` instead:
+
+```typescript
+workflow
+  .step(incrementStep)
+  .until(async ({ context }) => {
+    // Stop when the value reaches or exceeds 10
+    const result = context.getStepResult<{ value: number }>("increment");
+    return (result?.value ?? 0) >= 10;
+  }, incrementStep)
+  .then(finalStep);
+```
+
+You can also use a reference based condition:
+
+```typescript
+workflow
+  .step(incrementStep)
+  .until(
+    {
+      ref: { step: incrementStep, path: "value" },
+      query: { $gte: 10 },
+    },
+    incrementStep,
+  )
+  .then(finalStep);
+```
+
+**Compound After Syntax**: Enhanced the `.after` dependency syntax to support more complex step orchestration.
+
+The code below shows how to branch after stepA and later converge on stepF:
+
+```typescript
+myWorkflow
+  .step(stepA)
+  .then(stepB)
+  .then(stepD)
+  .after(stepA)
+  .step(stepC)
+  .then(stepE)
+  .after(stepD)
+  .step(stepF)
+  .step(stepE);
+```
+
+In this example:
+
+- `stepA` leads to `stepB`, then to `stepD`.
+- Separately, `stepA` also triggers `stepC`, which in turn leads to `stepE`.
+- Separately, `stepD` also triggers `stepF` and `stepE` in parallel.
+
+**If-Else Branching**: Added experimental support for conditional branching between workflow steps. This allows workflows to take different paths based on conditions.
+
+The `.else()` method creates an alternative branch in the workflow that executes when the preceding `if` condition evaluates to false:
+
+```typescript
+workflow
+  .step(startStep)
+  .if(async ({ context }) => {
+    const value = context.getStepResult<{ value: number }>("start")?.value;
+    return value < 10; // If true, execute the "if" branch
+  })
+  .then(ifBranchStep)
+  .else() // Alternative branch when the condition is false
+  .then(elseBranchStep)
+  .commit();
+```
+
+All these changes allow for more complex workflow patterns while maintaining readability.
+
+## New Mastra Voice features
+
+We launched 3 new features for [Mastra Voice](https://mastra.ai/blog/giving-agents-a-voice):
+
+- We now support WebSocket connections to establish a persistent connection to voice providers like OpenAI (instead of separate HTTP requests.) This enables bidirectional audio streaming without the request-wait-response pattern of traditional HTTP.
+- We've introduced an event-driven architecture for voice interactions. Instead of `const text = await agent.voice.listen(audio)`, you now use `agent.voice.on('writing', ({ text }) => { ... }).` This creates a more responsive experience without needing to manage any WebSocket complexity.
+- We are adding support for speech to speech providers, with OpenAI Realtime API being our first.
+
+## Memory & vector management
+
+The team has introduced more granular control over vector storage with the ability to update and delete specific index entries by ID. This provides better data management capabilities without requiring full index rebuilds.
+
+Memory thread management received a security enhancement through resourceId validation, ensuring proper access control:
+
+```typescript
+const memory = new Memory();
+
+// Now validates resource ownership
+await memory.query({
+  threadId: "thread_123",
+  resourceId: "user_456", // Throws if thread doesn't belong to this resource
+});
+```
+
+## Sneak peek: AgentNetwork
+
+The `AgentNetwork` feature allows you to create collaborative agent systems where multiple agents can work together, share context, and coordinate on complex tasks. The system handles memory synchronization automatically between agents, ensuring each has access to relevant shared context without manual management.
+
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/K4-HrIGXSGQ?si=7YVWQ4bndDA1J5p4&rel=0"
+  title="AgentNetwork Demo"
+  frameBorder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen
+></iframe>
+
+While experimental, `AgentNetwork` is [available to try out](https://github.com/mastra-ai/mastra/pull/2744).
+
+For reference, this is how to start building a research agent network consisting of a researcher and summary agent:
+
+```typescript
+import { AgentNetwork } from "@mastra/core/network";
+import { Agent } from "@mastra/core/agent";
+import { openai } from "@ai-sdk/openai";
+
+// Create specialized agents
+const researchAgent = new Agent({
+  name: "Research",
+  instructions: "You search for and gather information on topics",
+  model: openai("gpt-4o"),
+});
+
+const summaryAgent = new Agent({
+  name: "Summary",
+  instructions: "You summarize information into concise points",
+  model: openai("gpt-4o"),
+});
+
+// Create a network with LLM-based routing
+export const researchNetwork = new AgentNetwork({
+  name: "Research Assistant",
+  instructions:
+    "This network researches topics and provides summarized information.",
+  agents: [researchAgent, summaryAgent],
+  routingModel: openai("gpt-4o"),
+});
+```
+
+Stay tuned for more updates next week 🚀

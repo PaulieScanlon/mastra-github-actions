@@ -1,0 +1,75 @@
+---
+title: "Mastra Changelog 2025-01-17"
+publishedAt: "2025-01-17"
+summary: "Mastra's changelog for Jan 10th, 2025 through Jan 17th, 2025"
+author: "Sam Bhagwat"
+draft: false
+categories: "changelogs"
+---
+
+Welcome to Mastra Changelog #2. Let's dive in.
+
+## New Eval Framework
+
+We added a new `@mastra/evals` package for systematic agent evaluation, including metrics for answer relevancy, completeness, and tone consistency. We also integrated that with @mastra/core for standardized evaluation hooks.
+
+We just pushed this today and are still working on a blog post and docs, but you can see the [codebase](https://github.com/mastra-ai/mastra/tree/main/packages/evals) for now and install with `npm install @mastra/evals`.
+
+## Enhanced RAG Capabilities
+
+We published a [blog post](https://mastra.ai/blog/build-rag-workflow) from Nik Aiyer on Mastra’s RAG capabilities.
+
+We added a GraphRAG implementation for improved context retrieval, and introduced reranking capabilities with OpenAI and Cohere integration. We also added vector result inclusion options and filtering options across all vector store implementations.
+
+## MCP Support
+
+Mastra now integrates with Anthropic’s Model Context Protocol (MCP), allowing automatic discovery and integration of third-party AI tools and services. When you connect to an MCP server, Mastra automatically detects available tools and makes them accessible through its typed interface, maintaining the same development experience as built-in tools.
+
+This integration opens up access to hundreds of tools from decentralized tool registries like opentools.com and MCP.run. These tools include data analysis, image processing, filesystem access, app integrations, etc,
+
+## Text-to-Speech Integration
+
+Text-to-speech capabilities are now available through the new `@mastra/tts` package, supporting both ElevenLabs and OpenAI providers. The integration includes both streaming and generation methods, along with features for voice selection and management.
+
+## NotebookLM & multi-agent orchestration
+
+We've added support for multi-agent capabilities in Mastra with two new patterns.
+
+A [hierarchical multi-agent system](https://github.com/mastra-ai/mastra/tree/main/examples/basics/agents/hierarchical-multi-agent) allows agents to use other agents as tools, enabling sophisticated task delegation. Another workflow-based approach provides more structured control over agent interactions through explicit steps with deterministic execution.
+
+We've demonstrated both patterns in our new NotebookLM clone example ([blog post](https://mastra.ai/blog/notebooklm-clone-with-agent-orchestration), [live demo](https://notebooklm-mastra.vercel.app/), [codebase](https://github.com/mastra-ai/notebooklm-mastra)), which uses an orchestrator agent to coordinate between specialized agents for content analysis, script generation, and audio production.
+
+## Bug Fixes, Testing Upgrades & Infrastructure
+
+### Testing Infrastructure
+
+- Migrated from Jest to Vitest across all packages
+- Added new test coverage for GraphRAG and reranking
+- Improved test reliability and speed
+- Added streaming tests for TTS functionality
+
+### Vector Store Improvements
+
+- Fixed filter handling in PostgreSQL vector store
+- Improved error handling in Qdrant integration
+- Enhanced vector inclusion logic across all stores
+- Updated type definitions for better TypeScript support
+
+### Memory & Engine Updates
+
+- Improved entity creation logic in PostgreSQL engine
+- Enhanced sync record handling
+- Updated memory thread management
+- Fixed workflow snapshot persistence issues
+
+## Packages Version Updates
+
+- `@mastra/core` (0.1.27-alpha.64)
+- `@mastra/cli` (0.1.57-alpha.95)
+- `@mastra/rag` (0.0.2-alpha.49)
+- `@mastra/engine` (0.0.5-alpha.58)
+- `@mastra/memory` (0.0.2-alpha.44)
+- `@mastra/evals` (0.0.1-alpha.0) [NEW]
+- `@mastra/tts` (0.0.1-alpha.7) [NEW]
+- `@mastra/mcp` (0.0.1-alpha.4)
+- `create-mastra` (0.1.0-alpha.24)

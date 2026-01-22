@@ -1,0 +1,28 @@
+---
+title: "Mastra Changelog 2025-08-14"
+publishedAt: "2025-08-14"
+author: "Shane Thomas"
+summary: "This week we've shipped a major RAG enhancement with semantic markdown chunking and updated our A2A implementation to spec v0.3.0."
+draft: false
+categories: "changelogs"
+---
+
+This week we've shipped a RAG enhancement with semantic markdown chunking and updated our A2A implementation to spec v0.3.0.
+
+**Release:** `@mastra/core@0.13.2`
+
+Let's dive in:
+
+## Semantic Markdown Chunking for RAG
+
+We've added a new 'semantic-markdown' chunking strategy that intelligently splits documents while preserving context. Instead of naive splitting, it understands markdown structure and merges related header sections for more coherent chunks. This results in better retrieval accuracy and more relevant context for your agents.
+
+Check out [PR #6595](https://github.com/mastra-ai/mastra/pull/6595) for implementation details and our [RAG documentation](https://mastra.ai/en/docs/rag/chunking-and-embedding) for usage examples.
+
+## A2A Network Update to v0.3.0
+
+We've updated our Agent-to-Agent (A2A) communication protocol to match the official v0.3.0 specification. Key changes include renaming methods to match the spec (like `sendTask` → `submitTask`), adopting the official a2a-js SDK types, and fixing a bug where in-memory task storage wasn't persisting correctly between agent communications.
+
+See [PR #6441](https://github.com/mastra-ai/mastra/pull/6441) for migration details and our [Networks documentation](https://mastra.ai/en/docs/networks-vnext/overview) for the updated API.
+
+For the complete list of changes, check out the [full release notes](https://github.com/mastra-ai/mastra/releases).

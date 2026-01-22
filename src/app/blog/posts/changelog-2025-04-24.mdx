@@ -1,0 +1,99 @@
+---
+title: Mastra Changelog 2025-04-24
+publishedAt: "2025-04-24"
+summary: "Mastra's latest updates: dynamic agents, MCPServer support, vNext workflows, and more."
+author: "Shane Thomas"
+draft: false
+categories: "changelogs"
+---
+
+In the last couple weeks, we shipped dynamic agents, MCP Server Support, vNext workflows, and more. Let’s dig in…
+
+## Dynamic agents: new runtime context
+
+Mastra agents can now be customized on a per-user basis. In other words, you can let users specify which model your agent runs on or what toolset is available. You can also tailor your system prompt to your user.
+
+Just define a **`RuntimeContext`** and pass it to agent methods. You can set variables on the context and access them in your agent logic and tools:
+
+```tsx
+import { RuntimeContext } from "@mastra/core/di";
+
+// Define the shape of your runtime context
+type WeatherContext = {
+  "temperature-scale": "celsius" | "fahrenheit";
+};
+
+const runtimeContext = new RuntimeContext<WeatherContext>();
+runtimeContext.set("temperature-scale", "celsius");
+
+const response = await agent.generate("What's the weather like today?", {
+  runtimeContext,
+});
+```
+
+More details on configuring `runtimeContext` found [here](https://mastra.ai/blog/dynamic-agents).
+
+## MCP Server Support
+
+You can now convert any Mastra tools into MCP-compatible servers. You can also share your tools with any MCP client.
+
+Here’s how to get started:
+
+```tsx
+// stdio.ts
+#!/usr/bin/env node
+
+import { MCPServer } from "@mastra/mcp";
+import {
+  myFirstTool,
+  mySecondTool,
+  // ... more tools
+} from './tools';
+
+const server = new MCPServer({
+  name: "my-mcp-server",
+  version: "1.0.0",
+  tools: {
+    myFirstTool,
+    mySecondTool,
+    // ... more tools
+  },
+});
+
+server.startStdio().catch((error) => {
+  console.error("Error running MCP server:", error);
+  process.exit(1);
+});
+```
+
+For more tips on MCP servers, check out our [complete guide on deploying an MCPServer](https://mastra.ai/docs/mcp/publishing-mcp-server). Investor Alana Goyal recently [used Mastra to build her own MCP Server](https://basecase.vc/blog/unpacking-mcp).
+
+## vNext Workflows: new control flow, multi-engine workflows, and more
+
+We're giving workflows [a major overhaul](https://github.com/mastra-ai/mastra/tree/main/packages/core/src/workflows/vNext) based on user feedback. vPrevious (legacy workflows) made it too difficult to reason about and manage complex control flows.
+
+vNext features several improvements, many of which help to streamline control flows:
+
+- Nested Workflows are now first-class citizens and the first primitive to reach for when composing complex workflows
+- Looping (`while` or `until`) accepts a single Step or Workflow and repeats until conditions are met
+  - For infinite loops, you can loop a Nested Workflow from your "main workflow"
+- `.branch()` replaces if/else, providing clearer conditional paths. Each truthy condition executes in parallel.
+  - Branching creates a visual mental model of forking paths in a tree, which accurately represents workflow conditions
+- `.parallel()` for simple concurrent execution
+- `.then()` is now the universal connector (`.step()` has been retired)
+
+Soon you’ll also be able to swap-in other workflow engines (like [Temporal](https://temporal.io/), [Inngest](https://www.inngest.com/), and [Cloudflare workers](https://workers.cloudflare.com/)) while maintaining the same top-level Mastra syntax.
+
+Find the latest release timeline [here](https://discord.com/channels/1309558646228779139/1361964300511609014/1364473020625715231) and stay tuned for updates…
+
+## Other updates
+
+- We added Cloudflare D1 support to our storage engine. [#2932](https://github.com/mastra-ai/mastra/pull/2932)
+- We resolved bundling issues with workspace packages that use native dependencies by detecting such packages among externals, creating tarballs for them, and referencing them locally in package.json to enable proper installation during deployment. [#3602](https://github.com/mastra-ai/mastra/pull/3602)
+- We added CommonJS support in TypeScript for non-bundler environments, enabling easier migration of older projects to Mastra and adds end-to-end tests for these scenarios. [#3613](https://github.com/mastra-ai/mastra/pull/3613)
+- We updated Memory: Message ordering in @mastra/core. [#3672](https://github.com/mastra-ai/mastra/pull/3672)
+- All new messages are saved at least 1ms apart by adjusting `createdAt` timestamps. We added a function to correct previously misordered tool calls and included new tests. [#3654](https://github.com/mastra-ai/mastra/pull/3654)
+
+[Find the complete release log here](https://github.com/mastra-ai/mastra/releases/tag/%40mastra%2Fcore%400.9.0).
+
+That’s it for now… Happy building 🚀

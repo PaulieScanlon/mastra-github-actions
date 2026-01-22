@@ -1,0 +1,77 @@
+---
+title: "Mastra Changelog 2025-11-20"
+publishedAt: "2025-11-20"
+author: "Shane Thomas"
+summary: "Generate endpoint fix for OpenAI streaming, AI SDK v5 fine-grained stream control, and more."
+draft: false
+categories: "changelogs"
+---
+
+This week we fixed some critical issues with OpenAI streaming and added fine-grained stream control for AI SDK v5.
+
+
+**Release:** `@mastra/core@0.24.3`
+
+Let's see what all is new...
+
+## Generate Endpoint Fix for OpenAI Streaming
+
+We've switched to using proper generate endpoints for model calls, fixing a critical permission issue with OpenAI streaming. No more 403 errors when your users don't have full model permissions - the generate endpoint respects granular API key scopes properly.
+
+This change ([PR #10239](https://github.com/mastra-ai/mastra/pull/10239)) adds support for `doGenerate` in LanguageModelV2, ensuring your production deployments work reliably regardless of API key permission levels.
+
+## AI SDK v5: Fine-Grained Stream Control
+
+Building custom UIs? You now have complete control over what gets sent in your AI SDK streams. Configure exactly which message chunks your frontend receives with the new `sendStart`, `sendFinish`, `sendReasoning`, and `sendSources` options.
+
+```tsx
+// Using the chatRoute helper
+import { chatRoute } from "@mastra/ai-sdk";
+
+chatRoute({
+path: "/chat",
+agent: "weatherAgent",
+sendStart: false,      // Skip initialization chunks
+sendFinish: true,      // Keep completion signals
+sendReasoning: false,  // Omit reasoning traces
+sendSources: true      // Include source attributions
+})// Before: Everything was hardcoded
+// After: Pick what you need
+toAISdkV5Stream(stream, {
+  sendStart: false,      // Skip initialization chunks
+  sendFinish: true,      // Keep completion signals
+  sendReasoning: false,  // Omit reasoning traces
+  sendSources: true      // Include source attributions
+})
+```
+
+**Breaking Change:** `AgentStreamToAISDKTransformer` now accepts an options object instead of a single `lastMessageId` parameter. Update integrations accordingly. ([PR #10127](https://github.com/mastra-ai/mastra/pull/10127))
+
+## Tripwire Support for Stream Safety
+
+Ever needed to signal special conditions during streaming? Tripwire data chunks let you emit events when rate limits approach, content filters trigger, or other runtime conditions occur.
+
+```tsx
+// Tripwire chunks automatically convert to AI SDK format
+{
+  type: 'tripwire',
+  payload: { tripwireReason: 'Rate limit approaching' }
+}
+// Becomes: { type: 'data-tripwire', data: { tripwireReason: '...' }}
+```
+
+Your frontend can now react intelligently to these signals without breaking the stream flow. ([PR #10269](https://github.com/mastra-ai/mastra/pull/10269))
+
+## Other Notable Updates
+
+- **Auth Provider Options:** All auth providers (`@mastra/auth-*`) now support passing through custom options [PR #10284](https://github.com/mastra-ai/mastra/pull/10284)
+- **MCP Server Timeout:** Configure timeouts for MCP servers to prevent hanging connections [PR #9891](https://github.com/mastra-ai/mastra/pull/9891)
+- **Workflow Deprecation Fix:** Agent networks now use `.fullStream` instead of iterating `WorkflowRunOutput` directly [PR #10306](https://github.com/mastra-ai/mastra/pull/10306)
+- **Vector Definition Fix:** Resolved Pinecone integration issues [PR #10150](https://github.com/mastra-ai/mastra/pull/10150)
+- **Create-Mastra Improvements:** Better Bun runtime detection and cleanup on failure [PR #10307](https://github.com/mastra-ai/mastra/pull/10307)
+
+For the complete list of changes across all packages, check out the [full release notes](https://github.com/mastra-ai/mastra/releases/tag/%40mastra%2Fcore%400.24.3).
+
+That's all for this week!
+
+Happy building! 🚀

@@ -1,0 +1,52 @@
+---
+title: Mastra Changelog 2025-04-16
+publishedAt: "2025-04-16"
+summary: "Mastra's latest updates: MCP registry registry, model settings in Playground UI, and new Memory docs"
+author: "Shane Thomas"
+draft: false
+categories: "changelogs"
+---
+
+
+Last week, we shipped the first MCP registry registry, added model settings in Playground UI, and published some new docs. Let’s dig in…
+
+## The MCP registry registry (and mcp server)
+
+We launched the very first [MCP registry registry](https://mastra.ai/mcp-registry-registry), which is exactly what it sounds like it is: a registry of the most popular MCP registries.
+
+![MCP Registry Registry](/mcpregistryregistry.png)
+
+
+Since searching within two nested lists can be difficult, we also shipped an MCP registry registry MCP server.  Just `npm install @mastra/mcp-registry-registry` to start asking questions and explore how to use MCP with Mastra Agents.
+
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/ARE4tHUe1R4?si=yVRG76cv2s5DZwGY"
+  title="YouTube video player"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowfullscreen
+></iframe>
+
+## Model settings in Playground UI
+
+We enabled model setting controls in Mastra local dev. This means you can directly adjust [model settings like temperature, max tokens, and max retries](https://mastra.ai/docs/local-dev/mastra-dev#model-settings) when chatting with agents — and learn which settings work best.
+
+
+![Model settings in Mastra local dev](/modelsettings.gif)
+
+
+## New Memory docs section
+
+We shipped [new documentation on how Memory works](https://mastra.ai/docs/memory/overview) in Mastra.  You’ll find core definitions, installation instructions, and all sorts of tools and ideas for customizing memory configurations, e.g.:
+
+
+*In Mastra, context is broken up into three parts: system instructions and information about the user ([working memory](https://mastra.ai/docs/memory/working-memory)), recent messages ([message history](https://mastra.ai/docs/memory/overview#conversation-history)), and older messages that are relevant to the user's query ([semantic recall](https://mastra.ai/docs/memory/semantic-recall)).*
+
+*In addition, we provide [memory processors](https://mastra.ai/docs/memory/memory-processors) to trim context or remove information if the context is too long.*
+
+
+That&apos;s all for recent major Mastra updates. [Find the full release log here](https://github.com/mastra-ai/mastra/releases/tag/%40mastra%2Fcore%400.8.3). And, as usual, stay tuned for more changes next time…
+
+Happy building 🚀

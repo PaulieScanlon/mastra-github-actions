@@ -1,0 +1,84 @@
+---
+title: "Mastra Changelog 2025-08-08"
+publishedAt: "2025-08-08"
+author: "Shane Thomas"
+summary: "Introducing Scorer API, critical fixes for message handling and parallel workflows, plus improvements to memory filtering and type safety across the board. Plus, we're announcing our first ever conference: TypeScript AI"
+draft: false
+categories: "changelogs"
+---
+
+This week, alongside announcing our first ever Conference, we've shipped changes to the new Scorer API, critical fixes for message handling and parallel workflows, plus improvements to memory filtering and type safety across the board.
+
+**Release:** `@mastra/core@0.13.1`
+
+Let's dive in:
+
+## 🎉 Announcing Our First Ever Conference: TypeScript AI
+
+We're thrilled to announce **TypeScript AI Conference**—the first conference for TypeScript AI developers.
+
+Join us in San Francisco on November 6th for a day of deep dives into the whole agent stack in your favorite language.
+
+If you're shipping AI in TypeScript—whether it's your side hustle, your startup, or your 9-5—you're in the right room.
+
+[**Sign up to know when tickets drop**](https://tsconf.ai) and be the first to get notified when registration opens.
+
+## Scorer API Updates
+
+We released the new Scorer API as experimental two weeks ago, and in response to user feedback, we've made some API changes for better developer experience. The updates include renamed step methods for clarity, a switch to method-chaining initialization patterns, and the unification of createLLMScorer and createScorer into a single method, allowing users to supply either a prompt or a function for each step. These changes affect scoring implementations across stores, evals, and playground components.
+
+**Note:** If you're using the experimental Scorer API, you'll need to update your implementations. Check out our [Scorer documentation](https://mastra.ai/docs/evals/overview) for migration guides and examples.
+
+## Critical Fix: Message ID Collisions
+
+We fixed a critical bug where assistant message parts could overwrite parts on the same message when converting from multi-part message formats (like `UIMessage`) to split message formats (like `CoreMessage`).
+
+Each split message now receives a unique ID, properly preserving conversation context and tool invocation history. This ensures your agents maintain full context when handling complex multi-step tool interactions.
+
+For more details on message handling, see our [Core documentation](https://mastra.ai/docs/reference/core) and the related [PR #6437](https://github.com/mastra-ai/mastra/pull/6437).
+
+## Workflow Execution Improvements
+
+### Parallel Execution Fix
+
+We fixed a critical bug where parallel workflow blocks would complete even when only some steps were resumed. Parallel blocks now correctly wait for all steps to complete successfully before proceeding, preventing silent failures and data integrity issues.
+
+### Auto-Resume for Suspended Steps
+
+The `run.resume()` method now has an optional step parameter. Mastra automatically detects and resumes suspended workflow steps, making the API more intuitive and backwards-compatible.
+
+## Memory & Vector Store Enhancements
+
+### Improved Metadata Filtering
+
+We've fixed metadata filtering across multiple vector stores. LibSQL now uses corrected JSON path syntax and adjusted default minScore to include all cosine similarity results. PostgreSQL's default minScore is set to -1 to include orthogonal vectors with cosine similarity of 0. MongoDB properly maps thread_id and resource_id to the metadata subdocument for accurate semantic recall.
+
+For more details on vector store configuration, see our [Memory documentation](https://mastra.ai/docs/memory/overview) and [Storage documentation](https://mastra.ai/docs/server-db/storage).
+
+### PostgreSQL Schema Support
+
+We added full schema support for PostgreSQL storage. Workflow snapshots and scores now correctly include schema names in table operations with unique constraints across schemas.
+
+## Type Safety & ESM Compatibility
+
+We've introduced a unified types builder utility that ensures all TypeScript declaration files use proper `.js` import extensions for ESM compatibility. This resolves type generation issues across the entire monorepo and improves build reliability.
+
+## AI Telemetry Framework
+
+We shipped the initial framework for our new AI Telemetry system as a non-breaking feature. This lays the groundwork for better observability and monitoring of your AI applications.
+
+## Developer Experience Improvements
+
+### Working Memory Preview
+
+We added a preview button to the working memory section of the playground, allowing users to open a modal and preview rendered markdown of their current content or changes. This feature was requested in [PR #6437](https://github.com/mastra-ai/mastra/pull/6437) and improves the developer experience when working with memory-enabled agents.
+
+### Cloudflare Workers Support
+
+We fixed AbortController usage in Cloudflare Workers by lazily initializing Run's AbortController. Mastra projects can now deploy without errors on the Cloudflare Workers platform.
+
+### MCP OAuth Support
+
+HTTP-based MCP servers now support OAuth authentication with automatic token refresh through an `authProvider` option.
+
+For the complete list of changes and fixes, check out the [full release notes](https://github.com/mastra-ai/mastra/releases/tag/%40mastra%2Fcore%400.13.1).

@@ -1,0 +1,127 @@
+---
+title: Mastra Changelog 2025-01-31
+publishedAt: "2025-01-31"
+summary: "New Memory API, speech providers, vector store integrations, and core improvements"
+author: "Sam Bhagwat"
+draft: false
+categories: "changelogs"
+---
+
+Welcome to Mastra Changelog #4. This release introduces persistent storage with the Memory API, replaces Docker/Postgres with LibSQL, and splits vector stores into modular packages. The core package is now 50% smaller with improved tree-shaking.
+
+And....stick around to the end for the "one more thing" drop.
+
+## Memory API
+
+The new Memory API adds persistent storage and vector search capabilities:
+
+- `MastraStorage` and `MastraVector` classes for unified memory management
+- Support for both PostgreSQL and Redis as backend storage options
+- Token window management with automatic date-based filtering
+- Memory management helpers in `stream` and `generate`:
+  - `lastMessages`: Control number of recent messages included
+  - `semanticSearch`: Configure semantic search with:
+    - `topK`: Number of similar messages to retrieve
+    - `messageRange`: Messages before/after each result
+
+## LibSQL replacing `@mastra/engine`
+
+We've replaced `@mastra/engine` with LibSQL as our storage layer, including:
+
+- Persistent storage for agent messages and conversation history
+- Tool call tracking and persistence
+- Workflow state persistence for suspended workflows
+
+The storage layer powers the `mastra dev` server while eliminating the need for a Docker/Postgres setup locally.
+
+## Speech Provider Modules
+
+We've replaced `@mastra/tts` with a modular speech provider system:
+
+- Azure Speech (`@mastra/speech-azure`)
+- DeepGram (`@mastra/speech-deepgram`)
+- ElevenLabs (`@mastra/speech-elevenlabs`)
+- Play.ai (`@mastra/speech-playai`)
+
+The play.ai integration is new.
+
+## Vector Store Integrations
+
+We've moved our vector store implementations into separate packages for better modularity:
+
+- Cloudflare Vectorize (`@mastra/vector-cloudflare`)
+- LibSQL (`@mastra/vector-libsql`)
+- Astra DB (`@mastra/vector-astra`)
+- Chroma (`@mastra/vector-chroma`)
+- Pinecone (`@mastra/vector-pinecone`)
+- Qdrant (`@mastra/vector-qdrant`)
+- Upstash (`@mastra/vector-upstash`)
+
+Note that the Vectorize and Libsql implementations are new ones! Also, the `pg` filter implementation has been updated, and we've split embed into separate `embed` and `embedMany` functions for more consistent return types.
+
+The vector store implementations each (still) include:
+
+- Standard methods: `upsert`, `query`, `createIndex`, `listIndexes`
+- Configurable similarity metrics (cosine, euclidean, dotproduct)
+- Metadata filtering support
+- Automatic UUID generation for vector IDs
+
+## Unified Filter API
+
+The new MongoDB-style filter API is based on `sift`, providing a standard filtering interface across vector stores:
+
+- Query operators: `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`
+- Logical operators: `$and`, `$or`, `$not`, `$nor`
+- Array operators: `$in`, `$nin`, `$all`, `$elemMatch`
+- Element operators: `$exists`
+- Regex operators: `$regex`, `$options`
+
+The API enables hybrid RAG search by combining vector similarity with metadata filtering:
+
+```typescript
+const results = await vectorStore.query({
+  vector,
+  filter: {
+    date: { $gt: "2024-01-01" },
+    tags: { $in: ["documentation", "api"] },
+    $or: [{ status: "published" }, { author: "admin" }],
+  },
+});
+```
+
+Each vector store translates these filters to its native query language, maintaining consistent behavior across implementations.
+
+## Core architecture improvements
+
+Core architecture improvements:
+
+- Split core package into separate entry files for better tree-shaking
+- Updated Agent and LLM configuration with granular temperature controls
+- Implemented unified bundling architecture across:
+  - Mastra deployers with optimized asset handling
+  - Vector store modules with type-safe interfaces
+  - Logging system with structured output
+
+The overall `@mastra/core` package is now 50% smaller and the actual code imported will be even smaller than that (due to better tree-shaking).
+
+## Documentation Updates and bug fixes
+
+- Added intermediate RAG examples with code samples
+- Updated vector store integration guides with configuration examples
+- Added package keyword tags for better discoverability
+- Updated package READMEs with usage patterns
+- Added comprehensive RAG testing suite
+- Fixed workflow condition display in graph visualization
+- Resolved dev watcher file change detection issues
+- Fixed 500 error in memory persistence operations
+- Fixed thread sidebar state management in playground agent chat
+- Fixed logger configuration conflicts in deployment
+- Fixed CLI create command component flag parsing
+
+## ....and one more thing
+
+We built Mastra Cloud as a serverless platform for AI apps
+
+The first app we deployed on it was this [pretty cool beat generator](https://x.com/smthomas3/status/1885468281441837416)
+
+Stay tuned for more :)

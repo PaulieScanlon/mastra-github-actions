@@ -1,0 +1,240 @@
+---
+title: "Mastra Changelog 2025-10-23"
+publishedAt: "2025-10-23"
+author: "Shane Thomas"
+summary: "Workflow state management, unified streaming, AI tracing updates, and more.."
+draft: false
+categories: "changelogs"
+---
+
+We're excited to share two weeks of updates, featuring workflow state management, unified streaming, and AI tracing improvements.
+
+**Release:** `@mastra/core@0.22.0`
+
+Let's dig in...
+
+## Workflow State: Share Data Across Steps
+
+### Persistent State Management
+
+We've added workflow state management, enabling data sharing between workflow steps without having to pass values through every single step.
+
+State persists across suspensions and resumptions, perfect for long-running workflows with human-in-the-loop patterns.
+
+See our [full announcement](https://mastra.ai/blog/state) for detailed examples.
+
+### Suspend/Resume in Playground
+
+The playground now fully supports suspended workflows with visual indicators and resume controls, making human-in-the-loop workflow development much easier. We also shipped an API for automatically closing streams when a workflow suspends, allowing them to be resumed later.
+
+See [the blog post](https://mastra.ai/blog/resumeworkflows) for details.
+
+## Model Configuration Standardization
+
+### Consistent Model Config API
+
+All model configuration points now accept the same flexible `MastraModelConfig` type:
+
+```jsx
+// Scorers now support all config types
+const scorer = new LLMScorer({
+  model: "openai/gpt-4o", // model router
+  // OR config object
+  // OR dynamic function
+});
+
+// Input/Output Processors too
+const processor = new ModerationProcessor({
+  model: "anthropic/claude-3-haiku",
+});
+```
+
+This provides a consistent API across Scorers, Input/Output Processors, and Relevance Scorers.
+
+See [PR #8626](https://github.com/mastra-ai/mastra/pull/8626) for implementation.
+
+## Structured Output Improvements
+
+### **Zod-First Validation**
+
+We improved structured output with Zod validation, ensuring type-safe and validated JSON outputs across all providers. Better complex nested schema handling and clearer error messages when validation fails.
+
+### **Response Format by Default**
+
+We updated `structuredOutput` to use response format by default with an opt-in to JSON prompt injection (this would insert the schema into the system prompt.) 
+
+```tsx
+ const response = await testAgentThatDoesntSupportStructuredOutput.generate(
+	message,
+  {
+    structuredOutput: {
+      schema: z.object({
+        summary: z.string(),
+        keywords: z.array(z.string())
+      }),
+      // To use if you model does not natively support structured outputs
+      jsonPromptInjection: true
+    },
+  }
+);
+```
+
+### **Schema Context for Structuring Output with Separate Models**
+
+When specifying a `model` in `structuredOutput` options to use a separate structuring agent, the main agent now receives context about the schema fields that will be extracted. This prevents incomplete responses where the structuring model lacks sufficient information to populate all schema fields, ensuring the main agent generates comprehensive content for all requirements.
+
+This is particularly useful when using smaller or cheaper models for structuring (e.g., `gpt-4o-mini`), as the main agent will now generate all necessary information upfront rather than forcing the structuring model to fill in missing data.
+
+### **Zod schema compatibility**
+
+We fixed Zod schema handling to ensure compatibility with both Zod v3 and v4.
+
+### **OpenAI Strict Mode**
+
+We now automatically enable strict schema validation when using OpenAI models with JSON response format: 
+
+```tsx
+*// Automatic strict validation with OpenAI*
+const agent = new Agent({
+  model: "openai/gpt-4o",
+  structuredOutput: {
+    schema: { ... }
+  }
+});
+
+await agent.generate({
+  providerOptions: {
+    openai: {
+      // No need to set this anymore when using structuredOutput
+      // To disable it set it false
+      strictJsonSchema: true
+    }
+  }
+})
+```
+
+See [PR #8734](https://github.com/mastra-ai/mastra/pull/8734), [PR #8557](https://github.com/mastra-ai/mastra/pull/8557), [PR #8686](https://github.com/mastra-ai/mastra/pull/8686), and [PR #8886](https://github.com/mastra-ai/mastra/pull/8886) for implementation details.
+
+
+
+## AI Tracing Updates
+
+### RuntimeContext Metadata Extraction
+
+Automatically extract `RuntimeContext` values as metadata for tracing spans:
+
+```jsx
+const mastra = new Mastra({
+  observability: {
+    configs: {
+      default: {
+        runtimeContextKeys: ["userId", "tenantId"],
+      },
+    },
+  },
+});
+
+await agent.generate({
+  messages,
+  runtimeContext,
+  tracingOptions: {
+    runtimeContextKeys: ["experimentId"], // Add trace-specific keys
+  },
+});
+```
+
+See [PR #9072](https://github.com/mastra-ai/mastra/pull/9072) for details.
+
+### External Trace Integration
+
+Support for integrating with external tracing systems via existing trace IDs:
+
+```jsx
+await agent.generate({
+  messages,
+  tracingOptions: {
+    traceId: existingTraceId, // 32 hex chars
+    parentSpanId: parentSpanId, // 16 hex chars
+  },
+});
+```
+
+See [PR #9053](https://github.com/mastra-ai/mastra/pull/9053) for implementation.
+
+## Agent Updates
+
+### Agents as Tools
+
+Call agents directly as tools within other agents or workflows:
+
+```jsx
+const researchAgent = new Agent({
+  name: "researcher",
+  tools: { webSearchTool },
+});
+
+const writerAgent = new Agent({
+  name: "writer",
+  agents: { researchAgent }, // Use agent as a tool
+});
+```
+
+See [PR #8863](https://github.com/mastra-ai/mastra/pull/8863) for details.
+
+### Network Thread Titles
+
+Agent networks now automatically generate meaningful titles for conversation threads.
+
+See [PR #8853](https://github.com/mastra-ai/mastra/pull/8853) for implementation.
+
+## Workflow Improvements
+
+### Custom Resume Labels
+
+Define semantic labels for workflow resume points:
+
+```jsx
+const approvalStep = createStep({
+  id: "approval",
+  execute: async ({ suspend }) => {
+    return await suspend({
+      resumeLabel: "manager-approval",
+    });
+  },
+});
+
+// Resume with meaningful label
+await workflow.resume({
+  step: "manager-approval",
+  resumeData: approvalData,
+});
+```
+
+See [PR #8941](https://github.com/mastra-ai/mastra/pull/8941) for details.
+
+### Enhanced Workflow Output
+
+Workflows now return structured output with a `fullStream` property for complete streaming access.
+
+See [PR #9048](https://github.com/mastra-ai/mastra/pull/9048) for implementation.
+
+## Model Router Updates
+
+- **Embeddings Support**: Use magic strings for embeddings (`"openai/text-embedding-ada-002"`)
+- **Provider Options**: Typed options for OpenAI, Anthropic, Google, and xAI
+- **Local Provider Fix**: Support for Ollama and custom URLs
+
+## Other updates from the last couple weeks
+
+- **Memory Improvements**: Fixed reasoning chunk storage, preserved UIMessage metadata, and improved input processor message handling. [PR #9041](https://github.com/mastra-ai/mastra/pull/9041), [PR #9029](https://github.com/mastra-ai/mastra/pull/9029)
+- **Gemini Compatibility**: Fixed message ordering validation errors. [PR #8069](https://github.com/mastra-ai/mastra/pull/8069)
+- **LLM Step Tracing**: Comprehensive tracing for LLM steps and chunks. [PR #9058](https://github.com/mastra-ai/mastra/pull/9058)
+- **Tool Output Display**: Improved playground visualization. [PR #9021](https://github.com/mastra-ai/mastra/pull/9021)
+- **Nested Workflow Events**: Fixed event handling in nested workflows. [PR #9132](https://github.com/mastra-ai/mastra/pull/9132)
+- **Provider Tool Types**: Fixed TypeScript errors with provider tools. [PR #8940](https://github.com/mastra-ai/mastra/pull/8940)
+
+For the complete list of changes, check out the [full release notes](https://github.com/mastra-ai/mastra/releases).
+
+That's all for this update!
+
+Happy building! 🚀

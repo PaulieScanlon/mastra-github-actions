@@ -1,0 +1,52 @@
+---
+title: Mastra Changelog 2025-05-29
+publishedAt: "2025-05-29"
+summary: "MCP Server updates, streaming support, and more."
+author: "Shane Thomas"
+draft: false
+categories: "changelogs"
+---
+
+
+It’s been an eventful past few weeks at Mastra. Last week we shipped [Mastra 0.10](https://mastra.ai/blog/mastra-0.10). Yesterday we publicly announced the [hackathon winners](https://mastra.ai/blog/mastra-build-recap). And today we’re back with more updates.
+
+Let’s dig in…
+
+## Pass agents into MCPServer
+
+Agents can now be directly passed into the MCPServer class, automatically creating tools from them (with the naming convention `ask_<agentId>`.) The agent description is converted into a tool description and the tool will call `agent.generate()`.
+
+![MCP Server with agents example](/mcpserver1.png)
+
+## Pass workflows into MCPServer
+
+Similarly, you can also pass workflow instances into the MCPServer class. This gives you a tool for each workflow. The workflow `inputSchema` and description are used as the tool `inputSchema` and description. Calling the tool will start the workflow.
+
+![MCP Server with workflows example](/mcpserver2.png)
+
+## Stream workflows
+
+We added streaming support (`stream`) for workflows so users can see exactly what step an executed workflow is on.
+
+```tsx
+const { stream } = run.stream({inputData: {}))
+for await (const data of stream) {
+  if (data.type === 'step-suspended') {
+    // make it async to show that execution is not blocked
+    setImmediate(() => {
+      const resumeData = { stepId: 'promptAgent', context: { userInput: 'test input for resumption' } };
+      run.resume({ resumeData: resumeData as any, step: promptAgent });
+    });
+  }
+}
+```
+
+This works similarly to the client-js watch SDK.
+
+## Other updates
+
+- [We now support MongoDB as a storage backend](https://github.com/mastra-ai/mastra/pull/3841). [You can also pass options to MongoDBStore, similar to how options are passed in the Vector case](https://github.com/mastra-ai/mastra/pull/4414).
+- [We added configuration for the `mastra` package in the Verdaccio registry setup for E2E testing environment](https://github.com/mastra-ai/mastra/pull/4393).
+- [We added runtimeContext to evals.](https://github.com/mastra-ai/mastra/pull/4422).
+
+That’s all for this week. Happy building 🚀

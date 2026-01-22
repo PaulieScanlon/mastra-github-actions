@@ -1,0 +1,100 @@
+---
+title: "Mastra Changelog 2025-07-24"
+publishedAt: "2025-07-24"
+author: "Shane Thomas"
+summary: "Introducing Mastra Templates, MASTRA.BUILD hackathon, StreamVNext protocol, complete eval scores system, and major improvements across the board."
+draft: false
+categories: "changelogs"
+---
+
+Another big week for Mastra! We're thrilled to announce Mastra Templates and our second hackathon, plus major improvements to Memory, Evals, and more.
+
+Let's dive in:
+
+## Introducing Mastra Templates
+
+Bootstrap your AI projects instantly with pre-built starting points for common agentic use cases.
+
+```bash
+npx mastra@latest create --template [template-name]
+```
+
+![Deep Research template](/deepresearch.gif)
+
+Browse our templates library featuring ready-to-use projects for:
+
+- PDF chatbots
+- Text-to-SQL
+- Browser agents
+- CSV analysis
+- Docs chatbots
+- And more
+
+Skip the boilerplate and get straight to building.
+
+## MASTRA.BUILD Templates Hackathon
+
+Our second virtual hackathon is focused entirely on building Mastra Templates! It's your turn to build the best templates and win prizes.
+
+Join us from **July 28 - August 11** for:
+
+- Cash prizes
+- Feature slots in our templates library
+- Judges from Chroma, Arcade, WorkOS, Smithery, Browserbase, and Recall
+
+Kickoff ceremony will be livestreamed Monday, July 28th at noon PT.
+
+Register at [https://mastra.build](https://mastra.build).
+
+## StreamVNext Protocol
+
+We've shipped a new unified streaming protocol that enables nested streaming and usage tracking for all Mastra primitives — agents, tools, and workflows.
+
+This major improvement provides:
+
+- Unified streaming across all components
+- Support for nested streaming operations
+- Built-in token usage tracking and monitoring
+
+## Complete Eval Scores System
+
+We've shipped a new evals infrastructure with code and LLM-based scoring capabilities. This comprehensive system includes:
+
+- **Scorer interface** with abstract methods for custom implementations
+- **Code-based scoring** for deterministic evaluations
+- **LLM-based scoring** for subjective assessments
+- **Scorer hooks** that can be triggered for agents and workflows
+- **Storage support** across all major databases (PostgreSQL, MongoDB, DynamoDB, LanceDB, ClickHouse, LibSQL)
+
+Now you can properly evaluate and benchmark your agents' performance across different scenarios with both objective and subjective metrics.
+
+## Memory Improvements
+
+### New MSSQL Provider
+
+Microsoft SQL Server is now supported as a backend for memory storage, complete with implementation and tests. This expands your options for enterprise deployments.
+
+### Enhanced MongoDB Performance
+
+We've improved query performance by pre-filtering on properties before vector search and fixed multi-property filter bugs. Your MongoDB-backed agents should see noticeable speed improvements.
+
+### Memory in Playground
+
+Memory features are now available in the playground with semantic recall and configurable options. Test and develop memory-enabled agents directly in the UI — no more guessing what your agent remembers.
+
+### Runtime Context Configuration
+
+Memory can now be configured using runtime context, making it easier to dynamically adjust memory settings based on your application's needs.
+
+## Developer Experience Improvements
+
+### Auth Improvements
+
+The dev playground now bypasses authentication for local development when auth is enabled. This makes testing much easier — no more juggling tokens during development!
+
+
+That's all for this week! We're especially excited about Templates and the new StreamVNext protocol — they represent major steps forward in making Mastra more powerful and easier to use.
+
+For the complete list of changes and fixes, check out the [full release notes](https://github.com/mastra-ai/mastra/releases/tag/%40mastra%2Fcore%400.11.1).
+
+Happy building! 🚀

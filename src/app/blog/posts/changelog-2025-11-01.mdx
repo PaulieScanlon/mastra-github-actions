@@ -1,0 +1,91 @@
+---
+title: "Mastra Changelog 2025-11-01"
+publishedAt: "2025-11-01"
+author: "Shane Thomas"
+summary: "Agent Studio, 1.0 Release Preparation, and more."
+draft: false
+categories: "changelogs"
+
+---
+
+
+We're actively preparing for Mastra 1.0 and this week we're shipping Agent Studio - a unified interface for building and testing your Mastra agents, now with team collaboration features.
+
+**Release:** `@mastra/core@0.23.1`
+
+Let's dig in...
+
+## Announcing Mastra's Agent Studio
+
+When Mastra went viral, Playground was what blew people's minds the most.
+
+Then the community started taking projects into production. Users began asking us: *how do I share the playground with my team?*
+
+Multiple teams told us about the time they were spending building their own admin interfaces, deploying dev playgrounds, and wiring it all up.
+
+So we built a better way.
+
+### Agent Studio: for local development or team collaboration
+
+Now, you can share access to Studio using Mastra Cloud.
+
+We let you spin up a sandbox and run Studio inside of it, in an environment that's accessible to your team. That means you can show your teammates the agent you've been building.
+
+We've renamed Playground to Studio to reflect its growth from a local development tool into a team-ready workspace where everyone can view, share, and give feedback to improve your agent in every stage of development.
+
+### Getting started
+
+When you're developing locally, Studio works exactly like Playground always has. Just run `mastra dev`.
+
+To spin up your Studio in Mastra Cloud, connect your pre-existing deployment (by selecting your Mastra API URL), project GitHub repo, or pick a Mastra template. Your team can now test agents and workflows, validate prompts, and provide feedback.
+
+See our [full announcement](https://mastra.ai/blog/agent-studio)for more details.
+
+## Other Notable Updates
+
+### AI SDK Compatibility
+
+Fixed critical compatibility issues with Vercel's AI SDK:
+
+- **Fixed uiMessages duplication** in chat routes
+- **Network routing agent streaming** now properly supports text deltas  
+- **Workflow stream refactoring** with new fullStream property
+
+See [PR #8904](https://github.com/mastra-ai/mastra/pull/8904), [PR #8979](https://github.com/mastra-ai/mastra/pull/8979), and [PR #9048](https://github.com/mastra-ai/mastra/pull/9048) for implementation details.
+
+### Arize Observability
+
+New `@mastra/arize` package for AI tracing with OpenInference, enabling integration with Arize AX, Arize Phoenix, or any OpenInference compatible collector.
+
+See [PR #8827](https://github.com/mastra-ai/mastra/pull/8827) for implementation.
+
+### Model Span Renaming
+
+**Breaking Change:** LLM spans have been renamed to Model spans for clarity. This better reflects that these span types apply to all AI models, not just Large Language Models.
+
+- `AISpanType.LLM_GENERATION` → `AISpanType.MODEL_GENERATION`
+- `LLMGenerationAttributes` → `ModelGenerationAttributes`
+
+See [PR #9105](https://github.com/mastra-ai/mastra/pull/9105) for the full migration guide.
+
+### Tool Call Approval
+
+Added approval workflows for tool execution, enabling human-in-the-loop patterns for sensitive operations.
+
+See [PR #8649](https://github.com/mastra-ai/mastra/pull/8649) for details.
+
+### Error Handling
+
+Fixed error serialization in agent streaming to ensure errors are consistently exposed and preserved throughout the streaming lifecycle.
+
+See [PR #9192](https://github.com/mastra-ai/mastra/pull/9192) for implementation.
+
+### 1.0 Release Preparation
+
+We're actively preparing for our 1.0 release with stable APIs and stronger documentation. This milestone will mark Mastra's production readiness with backward-compatible APIs and enterprise-grade features.
+
+For the complete list of changes, check out the [full release notes](https://github.com/mastra-ai/mastra/releases/tag/%40mastra%2Fcore%400.23.1).
+
+That's all for this update!
+
+Happy building! 🚀

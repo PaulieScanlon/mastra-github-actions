@@ -1,0 +1,42 @@
+---
+title: "Mastra Changelog 2025-07-09"
+publishedAt: "2025-07-09"
+author: "Shane Thomas"
+summary: "Mastra is now Apache-2.0 licensed, Playground goes multi-modal, new memory and RAG features, and more."
+draft: false
+categories: "changelogs"
+---
+
+Another week, another round of big changes for Mastra! This week, we’re excited to announce a major licensing update, new features for Playground and Memory, and a bunch of other updates.
+
+Let’s get into it:
+
+## Mastra is now licensed under Apache-2.0
+
+Big news — we've moved Mastra to the Apache-2.0 license.
+
+This gives you complete freedom to use, modify, and distribute Mastra in any project. Build commercial applications, fork the repo, contribute back — it's all fair game.
+
+We're excited to see what the community builds next. Read our full blog post on the transition [here](https://mastra.ai/blog/apache-license).
+
+## Playground: now multi-modal
+
+We shipped an upgrade to playground: it’s now multi-modal. You can test agents with images, audio, and text.
+
+For example: Upload an image and see how your agent interprets it. Send audio clips and watch the transcription happen in real-time.
+
+## Memory: new `SaveQueueManager` method
+
+We've added `SaveQueueManager` to handle message persistence during streaming and generation. This solves a tricky problem: how do you save streaming data without losing messages or hitting race conditions?
+
+The manager batches saves intelligently and debounces operations, dramatically reducing data loss risk. Agent conversations should now be more reliable, especially during high-throughput scenarios.
+
+## RAG: new relevance provider
+
+We've added the ZeroEntropy relevance provider for better relevance scoring in your RAG pipelines. This means more accurate document retrieval and better context matching for your agents.
+
+## Other updates
+
+- We added support for configuring CloudflareD1Store with a custom D1 client implementation via a new D1ClientConfig option. This enables integration with custom HTTP endpoints while maintaining backward compatibility.
+- We now support passing a function that returns the sleep duration or date to the `sleep()` and `sleepUntil()` workflow methods.
+

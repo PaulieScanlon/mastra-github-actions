@@ -1,0 +1,74 @@
+---
+title: "Mastra Changelog 2025-07-30"
+publishedAt: "2025-07-30"
+author: "Shane Thomas"
+summary: "Improvements to Agents, Memory, and more."
+draft: false
+categories: "changelogs"
+---
+
+
+This week we've shipped input processors for agents, bulk message deletion, voice features in playground, and other performance improvements across the board.
+
+Let's dive in:
+
+## Input Processors for Agents
+
+We've added a middleware system for agents that lets you filter, transform, validate, and even terminate messages before they reach the language model.
+
+Message processors enable:
+
+- Pre-flight validation and filtering
+- Message transformation and enrichment
+- Early termination based on custom logic
+- Built-in processors with full tracing support
+
+This gives you fine-grained control over what your agents see and how they respond.
+
+Read more about input processors in our [deep dive](https://mastra.ai/blog/building-fast-reliable-input-processors).
+
+## Bulk Message Deletion
+
+We shipped a flexible `deleteMessages` method. You can now delete single or multiple messages at once.
+
+This is perfect for managing conversation history and keeping your memory stores clean.
+
+## Voice Features in Playground
+
+The playground now supports both Text-to-Speech and Speech-to-Text functionality!
+
+- **TTS**: Convert agent responses to natural speech
+- **STT**: Use voice input to interact with your agents
+
+
+## Memory & Storage Improvements
+
+### Thread Management
+
+We've improved thread creation to prevent orphaned threads — threads are now only saved after successful message generation. This keeps your memory stores clean and prevents failed attempts from cluttering your data.
+
+### Thread Sorting
+
+Both `getThreadsByResourceId` and `getThreadsByResourceIdPaginated` now sort results by `updatedAt`. This breaking change ensures you always see the most recently active threads first.
+
+### Hybrid Search for Upstash
+
+The Upstash vector store now supports hybrid search, combining semantic (dense) and keyword-based (sparse) vector search. This gives you the best of both worlds while maintaining backward compatibility with dense-only indexes.
+
+## Developer Experience Improvements
+
+### Better Error Messages
+
+We've added clearer error messages across the board:
+
+- Agent memory now explicitly states when both `resourceId` and `threadId` are required
+- `registerApiRoute` provides better guidance for invalid configurations
+- Telemetry warnings when enabled but not loaded
+
+
+### Message Metadata Support
+
+Both the client-js SDK and agents now support message metadata for UIMessages—unlocking salient contextual information for your applications.
+
+
+For the complete list of changes and fixes, check out the [full release notes](https://github.com/mastra-ai/mastra/releases).

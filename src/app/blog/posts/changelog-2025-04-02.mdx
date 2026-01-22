@@ -1,0 +1,85 @@
+---
+title: Mastra Changelog 2025-04-02
+publishedAt: "2025-04-02"
+summary: "Mastra's Latest Updates: API routing, memory processors, and more"
+author: "Shane Thomas"
+draft: false
+categories: "changelogs"
+---
+
+This week we added custom API routes, pluggable memory processors, and more.
+
+## Custom API routes: build your AI backend
+
+Mastra now allows developers to create custom API routes, transforming it into a complete backend solution for AI applications. While Mastra's core functionality remains protected under `/api/*` routes, developers can now define their own endpoints anywhere else in the URL space. This means you can create custom backend logic that directly integrates with Mastra's AI capabilities, agents, and workflows.
+
+For example, you could create a custom weather endpoint that leverages a Mastra agent:
+
+```tsx
+registerApiRoute('/weather/forecast', {
+  method: 'POST',
+  handler: async (c) => {
+    const weatherAgent = mastra.getAgent('weatherAgent');
+    const forecast = await weatherAgent.generate('What is the weather today?');
+    return c.json({ forecast });
+  }
+});
+```
+
+The implementation also enforces this separation between system and custom routes through type-safe validation.
+
+Custom API routes are currently only available in alpha. 
+
+## Memory processors
+
+Mastra now supports pluggable memory processors. In other words, you can customize and transform memories before they’re added to your agent.
+
+ This week we added built-in `TokenLimiter` and `ToolCallFilter` processors.
+
+`TokenLimiter` will limit the total number of tokens added to the context window via retrieved memories. 
+
+For instance, GPT-4o has a max token limit of 128000 tokens so this can be used to make sure that limit isn’t exceeded: 
+
+```tsx
+import { Memory } from "@mastra/memory";
+import { TokenLimiter } from "@mastra/memory/processors";
+ 
+const memory = new Memory({
+  processors: [
+    // Limit message history to approximately 127000 tokens (ex. for gpt-4o)
+    new TokenLimiter(127000),
+  ],
+});
+```
+
+The `ToolCallFilter` will remove tool calls by tool id (or all tools) from the history. This is helpful if you only ever want the agent to see the most recent tool call. 
+
+Here’s a sample implementation: 
+
+```tsx
+import { Memory } from "@mastra/memory";
+import { ToolCallFilter } from "@mastra/memory/processors";
+ 
+const memory = new Memory({
+  processors: [
+    // Remove all tool calls and results
+    new ToolCallFilter(),
+ 
+    // Or exclude only specific tools
+    new ToolCallFilter({
+      exclude: ["imageGenTool"],
+    }),
+  ],
+});
+```
+
+We also support the ability to combine multiple processors and even write your own custom ones. For implementation details & more on memory processors, please [check out our docs](https://mastra.ai/docs/reference/memory/memory-processors).
+
+## A few other updates
+
+- We expanded Mastra Storage’s database support to include Clickhouse, providing users with an additional option for storing their data.
+- We updated the framework to use version 4.2.2 of the Vercel AI SDK.
+
+We’re always improving Mastra and would [love to hear your feedback](https://discord.gg/gCj26JKF). 
+
+More to come next week!

@@ -1,0 +1,90 @@
+---
+title: Mastra Changelog 2025-03-20
+publishedAt: "2025-03-20"
+summary: "Mastra MCP documentation server, AgentNetwork updates, and more"
+author: "Sam Bhagwat"
+draft: false
+categories: "changelogs"
+---
+
+
+This week we launched our very own MCP documentation server, shipped improvements to AgentNetwork, and continued to make enhancements to workflows.
+
+## Mastra MCP Documentation Server
+
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/vciV57lF0og?si=4i5xFi34rjDFBJBJ&rel=0"
+  title="Mastra MCP documentation server"
+  frameBorder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen
+  className="w-full rounded-lg border border-border-1"
+></iframe>
+
+
+As per user requests, we built a documentation server that allows an AI assistant or IDE with MCP support (like Cursor, Windsurf, or Cline) to query Mastra's complete knowledge base. 
+
+Here are a few sample prompts you might try using with our documentation server:
+
+- "Add evals to my agent and write tests"
+- "Does Mastra work with the AI SDK?"
+- "I'm running into a bug with agent memory, have there been any related changes or bug fixes recently?"
+
+We've seen that coding agents using this system are able to find the information they need to complete a task more quickly and efficiently.
+
+To install, run **`pnpm create mastra@latest`** and select Cursor or Windsurf when prompted to install the MCP server. Further details on the feature can be found [here](https://mastra.ai/blog/introducing-mastra-mcp).
+
+## New AgentNetwork primitive
+
+The `AgentNetwork` class provides a way to create a network of specialized agents that can collaborate to solve complex tasks. Unlike Workflows, which require explicit control over execution paths, `AgentNetwork` uses an LLM-based router to dynamically determine which agent to call next. 
+
+In its latest implementation, the `RoutingAgent` has access to a single tool called "transmit.” This tool handles:
+
+- Single agent calls
+- Multiple parallel agent calls
+- Context sharing between agents
+
+`AgentNetwork` [remains an experimental feature](https://mastra.ai/docs/agents/networks) but is now available in Mastra’s alpha and latest versions.
+
+## Workflow improvements
+
+The latest workflow updates focused on enhancing control flow and execution handling:
+
+- We're also exposing event functionality in workflows now. A major addition is experimental `.afterEvent()` support. This provides more flexible workflow orchestration.
+    
+```typescript
+export const queryProcessingWorkflow = new Workflow({
+    name: 'query-processing-workflow',
+    // Define the schema for the initial trigger data
+    triggerSchema: z.object({
+        query: z.string().describe('The user query'),
+    }),
+    // Define events that can be triggered during workflow execution
+    events: {
+        userFeedback: {
+            schema: z.object({
+                feedback: z.string().describe('User feedback on the initial response'),
+            }),
+        },
+    },
+});
+
+
+queryProcessingWorkflow
+    .step(generateResponse)
+    .afterEvent('userFeedback')
+    .step(improveResponse)
+    .commit();
+```
+    
+- Suspend/resume functionality was improved, with suspend metadata now being stored in `context.resumeData` for better state management.
+- Several bugs were fixed, including issues with the `.after()` method execution when handling multiple passes, proper execution of else branches when if-branches contain loops, and corrected handling of skipped conditions on awaited steps.
+- Finally, the workflow visualization in playground UI was enhanced with resizable panels (note: we also improved agent visualization).
+
+That’s all the major updates for this week! 🚀
+
+Stay tuned for more… 
+
+… and if you’re impatient, here are 3 emojis as a hint for what’s coming next: 👤💬👤

@@ -1,0 +1,56 @@
+---
+title: "Mastra Changelog 2025-11-14"
+publishedAt: "2025-11-14"
+author: "Shane Thomas"
+summary: "Mastra v1 is now in beta, we published a new book, and shipped the Mastra UI Dojo."
+draft: false
+categories: "changelogs"
+
+---
+
+Most of the Mastra team got together in SF to meet many of you at the first TypeScript AI Conference. Even while traveling, we’ve been shipping. In case you missed our announcements on X, Mastra v1 is now in beta. Oh, our brand also got a makeover, we published a new book, and shipped the [Mastra UI Dojo](https://ui-dojo.mastra.ai/). 
+
+**Release:** `@mastra/core@0.23.1`
+
+Let's dive into the details...
+
+## Mastra v1 Beta
+
+After months of iteration with the community, we're entering beta for Mastra v1. All previous experimental APIs are now stable!
+
+v1 brings together everything we've learned: unified model routing, the single `.network()` for agent networks, seamless streaming, robust observability, and the developer experience TypeScript engineers deserve.
+
+Read about what's coming in [v1 beta](https://mastra.ai/blog/mastrav1). Otherwise, just `npm create mastra@beta` to try it out. 
+
+## Announcing Our Second Book: Patterns for Building AI Agents
+
+Following the success of "Principles of Building AI Agents," we released a new book focused on practical patterns for production AI systems.
+
+This book covers things like architectural patterns and safety and deployment tips that we've learned from helping teams figure out how to ship agents to production.
+
+Learn more in our [book announcement](https://mastra.ai/blog/patterns-book). You can also get the book [here](https://mastra.ai/book-2).
+
+## Mastra UI Dojo: Choose Your Frontend
+
+“How do I build a frontend for my Mastra project?” Mastra UI Dojo shows you how. It demos AI SDK, assistant-ui, and CopilotKit UIs. The code is fully open-source, so it provides the patterns and components you need to build responsive AI interfaces. Check out the [UI Dojo announcement](https://mastra.ai/blog/aiuidojo) to explore the possibilities.
+
+## New Logo and Brand
+
+We've evolved our visual identity because developers deserve beautiful tools. 
+
+Our new logo represents the modular, composable nature of Mastra. We also thought agents deserved a rebrand. They should feel organic, alive, flexible, and dynamic. 
+
+Read the [full announcement](https://mastra.ai/blog/rebrand) for the story behind the change.
+
+## Other Notable Updates
+
+- **Arize Observability:** New `@mastra/arize` package for OpenInference-compatible tracing [PR #8827](https://github.com/mastra-ai/mastra/pull/8827)
+- **External Trace IDs:** Support for integrating with external tracing systems via traceId and parentSpanId [PR #9053](https://github.com/mastra-ai/mastra/pull/9053)
+- **Structured Output Improvements:** Moved to EventEmitter-based stream processing for multiple consumers [PR #8229](https://github.com/mastra-ai/mastra/pull/8229)
+- **Tool Approval:** Human-in-the-loop capabilities for reviewing tool executions [PR #8649](https://github.com/mastra-ai/mastra/pull/8649)
+
+For the complete list of changes, check out the [full release notes](https://github.com/mastra-ai/mastra/releases/tag/%40mastra%2Fcore%400.23.1).
+
+That's all!
+
+Happy building! 🚀

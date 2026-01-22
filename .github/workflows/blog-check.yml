@@ -1,0 +1,88 @@
+name: Blog Post Check
+
+on:
+  pull_request:
+    paths:
+      - "src/app/blog/posts/**"
+  workflow_dispatch:
+    inputs:
+      file:
+        description: "Blog post file to check (e.g., src/app/blog/posts/changelog-2025-09-25.mdx)"
+        required: true
+        type: string
+
+env:
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # Manual run - just log output
+  manual-check:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Check blog post
+        run: npx tsx .github/scripts/check-blog.ts "${{ inputs.file }}"
+
+  # PR run - comment on PR
+  pr-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Get changed blog files
+        id: changed-files
+        run: |
+          FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} -- 'src/app/blog/posts/*.mdx' | tr '\n' ' ')
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+
+      - name: Check blog posts
+        id: check
+        if: steps.changed-files.outputs.files != ''
+        run: |
+          RESULTS=""
+          for file in ${{ steps.changed-files.outputs.files }}; do
+            echo "Checking $file..."
+            OUTPUT=$(npx tsx .github/scripts/check-blog.ts "$file" 2>&1) || true
+            RESULTS="$RESULTS\n\n## $file\n\n$OUTPUT"
+          done
+          echo "results<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$RESULTS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        if: steps.changed-files.outputs.files != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const results = `${{ steps.check.outputs.results }}`;
+            if (results.trim()) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `# Blog Post Review\n\n${results}`
+              });
+            }

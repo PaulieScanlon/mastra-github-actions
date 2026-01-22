@@ -1,0 +1,63 @@
+---
+title: "Mastra Changelog 2025-06-27"
+publishedAt: "2025-06-27"
+author: "Shane Thomas"
+summary: "Mastra Cloud public beta, agent network chat, memory improvements, workflow updates, and a new Mastra 101 lesson."
+draft: false
+categories: "changelogs"
+---
+
+Another busy week at Mastra. We're thrilled to announce the public beta of Mastra Cloud, plus some exciting new features that make building AI agents and workflows even more powerful.
+
+Let's dive into this week's updates.
+
+## Mastra Cloud
+
+We're opening up **Mastra Cloud** to everyone—no waitlist, no invite, just head to [mastra.ai/cloud](https://mastra.ai/cloud) and start building.
+
+With Mastra Cloud, you can:
+
+- Deploy and manage agents, workflows, MCP servers, and tools.
+- Test in playground
+- Monitor, observe, and debug your runs in real time.
+
+Sign up and deploy your first agent in minutes at [mastra.ai/cloud](https://mastra.ai/cloud).
+
+
+## Agent Network
+
+You can now chat with your agent network in playground — great for complex tasks like "research London AND write an article about its weather".
+
+![Agent Network Chat Interface](/agentnetworkvnext.png)
+
+We currently have two chat modes: `loop` and `stream`.
+
+Loop lets your agent network keep iterating for a specified number of execution steps. You can tweak the max iterations directly in Playground.
+
+## Memory
+
+Last week we added per-resource semantic recall. This week, we added per-resource working memory across multiple Mastra packages.
+
+This enables persistent user memory across multiple conversation threads. We've also included flexible scoping options.
+
+## Workflows
+
+We added a new `bail` function to workflows. This method allows workflows to exit a step early.
+
+It also updates the return types of `suspend()` and `bail()` to `any` so that their value can still be returned (without having to return something that looks like the step result type).
+
+We also introduced a new async operation `createRunAsync()` that also stores a `pending` workflow state into storage. As such, the `createRun` method is deprecated and will `logger.warn()`.
+
+## Mastra 101
+
+We added a new lesson to [Mastra 101](https://mastra.ai/course), our mcp-based course that you can take directly in your IDE (like Cursor or Windsurf).
+
+![Mastra 101 Lesson 4 - Building Powerful Workflows](/mastra101lesson4.png)
+
+This fourth lesson teaches you how to build powerful workflows that orchestrate multiple AI agents and tools.
+
+
+
+That's it for this week! As always, we'd love to hear your feedback and see what you're building with Mastra.
+
+Happy building! And remember: you can just deploy things. 🚀

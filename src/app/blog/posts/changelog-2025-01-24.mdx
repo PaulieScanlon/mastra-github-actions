@@ -1,0 +1,119 @@
+---
+title: Mastra Changelog 2025-01-24
+publishedAt: "2025-01-24"
+summary: "New `mastra build` command, evals in dev playground, new model support, and an abstracted deployer package"
+author: "Sam Bhagwat"
+draft: false
+categories: "changelogs"
+---
+
+Welcome to Mastra Changelog #3. Let's dive in.
+
+## Major Updates
+
+### New `mastra build` command
+
+We've released a new `mastra build` command.
+
+This command lets you bundle a production version of your Mastra agents and workflows into a Hono server.
+
+This is good for deploying Mastra on a cloud server or containerized environment (ie, EC2, Digital Ocean, etc).
+
+### Evals added to Dev Playground
+
+The big news here is that we've added evals to the dev playground.
+
+This means you can now test your agents and workflows locally and get feedback on their performance.
+
+Metrics can be accessed both during CI and in live environments through the playground.
+
+Here's a screenshot:
+
+![evals](/mastra-dev-evals.png)
+
+## More Dev Playground improvements
+
+The local dev playground is now more powerful and easier to use:
+
+- Migrated to Hono server for better performance
+- Enhanced OpenAPI documentation
+- Added Swagger UI support
+- Automatic rebuild/refresh on file changes
+
+Some build and performance improvements here too:
+
+- Separated playground dependencies from CLI package
+- Improved build & deploy configurations
+- Enhanced tsconfig setup
+
+These changes make the development experience more responsive and reliable.
+
+### More Evals
+
+Building on our recently released `@mastra/evals` framework, we've added new eval metrics:
+
+- Bias detection
+- Hallucination measurement
+- Contextual relevance
+- Summarization quality
+
+In addition, we've reorganized metrics into NLP and LLM categories for better organization, and metrics now return a standardized format with `score` and `info` object containing detailed information.
+
+### New Model Support
+
+Added support for:
+
+- Perplexity Sonar model
+- o1 model support
+- DeepSeek-v3 and DeepSeek-r1 model support
+- PlayAI TTS with streaming
+
+### New `@mastra/deployer` package
+
+We've released a new `@mastra/deployer` package to streamline deployment workflows.
+
+The package handles deploying Mastra into a serverless environment (ie, bundling and code splitting appropriately), managing secrets, and writing files.
+
+Because we've abstracted it out into a package, other providers can extend it. If you're interested in adding support for another provider, take a look at the [@mastra/deployer](https://github.com/mastra-ai/mastra/tree/main/packages/deployer) package and the individual provider code: [Cloudflare](https://github.com/mastra-ai/mastra/tree/main/deployers/cloudflare), [Vercel](https://github.com/mastra-ai/mastra/tree/main/deployers/vercel), and [Netlify](https://github.com/mastra-ai/mastra/tree/main/deployers/netlify).
+
+## Mastra Memory (coming soon)
+
+We're finalizing a number of advanced memory features:
+
+- Hierarchical memory storage
+- Long-term memory via memory compression
+- Vector search memory
+
+The code is currently in a draft PR on a branch: [https://github.com/mastra-ai/mastra/pull/1525](https://github.com/mastra-ai/mastra/pull/1525)
+
+Sneak peek:
+
+![memory](/mastra-hierarchical-memory.png)
+
+## Technical Improvements
+
+### RAG & Memory
+
+- Added transaction support to pgvector
+- Improved vector query search functionality
+- Enhanced memory state management
+
+### Bug Fixes
+
+- Fixed agent generate/stream with structured output in dev playground
+- Resolved workflow trigger handling issues
+- Addressed CLI build and deployment edge cases
+
+## Package Version Updates
+
+- `@mastra/core` (0.1.27-alpha.68)
+- `@mastra/cli` (0.1.57-alpha.106)
+- `@mastra/deployer` (0.0.1-alpha.6)
+- `@mastra/evals` (0.1.0-alpha.8)
+- `@mastra/engine` (0.0.5-alpha.62)
+- `@mastra/memory` (0.0.2-alpha.48)
+- `@mastra/mcp` (0.0.1-alpha.8)
+- `@mastra/rag` (0.0.2-alpha.54)
+- `@mastra/tts` (0.0.1-alpha.15)
+
+[Source: Mastra Changelog 2025-01-17](https://mastra.ai/blog/changelog-2025-01-17), [Mastra Changelog 2025-01-10](https://mastra.ai/blog/changelog-2025-01-10)

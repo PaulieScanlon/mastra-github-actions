@@ -1,0 +1,203 @@
+---
+title: "Mastra Changelog 2025-06-20"
+publishedAt: "2025-06-20"
+author: "Shane Thomas"
+summary: "We added sleep methods to workflows, structured memory to agents, and a new Gladia STT provider."
+draft: false
+categories: "changelogs"
+---
+
+
+
+What a week at Mastra. Co-founders united in SF, we gave out books at YC Startup School, and the team keeps shipping…
+
+Let’s dive into this week’s updates.
+
+## Workflow Sleep Methods
+
+We added `.sleep()` and `.sleepUntil()` methods to workflows, so you can pause execution for a specified duration or until a specific time: 
+
+### `sleep`
+
+```jsx
+import { createWorkflow, createStep } from '@mastra/core/workflows';
+import { z } from 'zod';
+
+const waitStep = createStep({
+  id: 'wait',
+  description: 'Waits for 5 seconds before proceeding',
+  inputSchema: z.object({}),
+  outputSchema: z.object({ done: z.boolean() }),
+  execute: async () => {
+    return { done: true };
+  },
+});
+
+const workflow = createWorkflow({
+  id: 'sleepWorkflow',
+  inputSchema: z.object({}),
+  outputSchema: z.object({ done: z.boolean() }),
+  steps: [waitStep],
+})
+  .then(waitStep)
+  .sleep(5000)
+  .commit();
+```
+
+### `sleepUntil`
+
+```jsx
+import { createWorkflow, createStep } from '@mastra/core/workflows';
+import { z } from 'zod';
+
+const stepOne = createStep({
+  id: 'step-one',
+  description: 'Return step',
+  inputSchema: z.object({}),
+  outputSchema: z.object({ step: z.string() }),
+  execute: async () => {
+    return { step: 'one' };
+  },
+});
+
+const stepTwo = createStep({
+  id: 'step-two',
+  description: 'Return ste',
+  inputSchema: z.object({ step: z.string() }),
+  outputSchema: z.object({ success: z.boolean() }),
+  execute: async () => {
+    return { success: true };
+  },
+});
+
+const workflow = createWorkflow({
+  id: 'sleepUntilWorkflow',
+  inputSchema: z.object({}),
+  outputSchema: z.object({ success: z.boolean() }),
+  steps: [stepOne, stepTwo],
+})
+  .then(stepOne)
+  .sleepUntil(new Date(Date.now() + 1000))
+  .then(stepTwo)
+  .commit();
+```
+
+### `waitForEvent`
+
+```jsx
+import { createWorkflow, createStep } from '@mastra/core/workflows';
+import { z } from 'zod';
+
+const stepOne = createStep({
+  id: 'step-one',
+  description: 'Return step 1',
+  inputSchema: z.object({}),
+  outputSchema: z.object({ step: z.string() }),
+  execute: async () => {
+    return { step: 'one' };
+  },
+});
+
+const stepTwo = createStep({
+  id: 'step-two',
+  description: 'Return step 2',
+  inputSchema: z.object({ step: z.string() }),
+  outputSchema: z.object({ step: z.string() }),
+  execute: async () => {
+    return { step: 'two' };
+  },
+});
+
+const stepThree = createStep({
+  id: 'step-three',
+  description: 'Return success',
+  inputSchema: z.object({ step: z.string() }),
+  outputSchema: z.object({ success: z.boolean() }),
+  execute: async () => {
+    return { success: true };
+  },
+});
+
+const workflow = createWorkflow({
+  id: 'waitForEventWorkflow',
+  inputSchema: z.object({}),
+  outputSchema: z.object({ success: z.boolean() }),
+  steps: [stepOne, stepTwo, stepThree],
+})
+  .then(stepOne)
+  .waitForEvent('my-event-name', stepTwo)
+  .then(stepThree)
+  .commit();
+```
+
+When executing the workflow the step waits for an event to be received. 
+
+```jsx
+const workflow = mastra.getWorkflow('waitForEventWorkflow')
+
+const run = await workflow.createRun()
+
+run.start({})
+
+// Elsewhere, you can execute sendEvent to activate the step
+setTimeout(() => {
+    run.sendEvent('my-event-name', {
+        step: 'three',
+    })
+}, 5000)
+```
+
+## Structured Memory
+
+Agents can now store and retrieve objects / JSON in working memory, not just conversation messages. They can also store complex user characteristics and preferences: 
+
+```jsx
+import { Agent } from '@mastra/core/agent';
+import { z } from 'zod';
+
+const memory = new Memory({
+    options: {
+      workingMemory: {
+        enabled: true,
+        schema: z.object({ 
+	        theme: z.string(), 
+	        notifications: z.boolean().default(false),
+	        language: z.string(),
+	      })
+      },
+    },
+  })
+
+const agent = new Agent({
+  name: 'MemoryAgent',
+  instructions: 'You remember user preferences and task states.',
+  memory: memory
+});
+
+// Example: Store user preferences
+await agent.generate('I want my theme to be dark mode and en', {
+  resourceId: '123,
+  threadId: '234',
+});
+
+// Example: Retrieve user preferences
+const prefs = await memory.getWorkingMemory({ threadId: '234', format: 'json' });
+
+console.log('User preferences:', prefs);
+// {
+//  theme: 'dark mode',
+//  language: 'en',
+//  notifications: false,
+// }
+```
+
+## Other Updates
+
+- **New Gladia STT provider.** Gladia is a French audio transcription API used by AI companies like 11x ([#4459](https://github.com/mastra-ai/mastra/releases#:~:text=a%20new%20feature.-,%234459,-%5BIMPORTANT%5D))
+- **Enhanced Agent Context**: We added thread metadata support to `agent.stream()` and ≈`agent.generate()` for better conversation management ([#5108](https://github.com/mastra-ai/mastra/releases#:~:text=for%20backward%20compatibility.-,%235108,-The%20type%20definition))
+- **LaTeX Document Support**: RAG now correctly chunks LaTeX documents with proper separator handling ([#4882](https://github.com/mastra-ai/mastra/releases#:~:text=in%20MDocument.chunk().-,%234882,-MCP))
+- **PostgreSQL 15 Compatibility**: We fixed memory retrieval issues with explicit query aliases ([#5182](https://github.com/mastra-ai/mastra/releases#:~:text=scope%20is%20resource.-,%235182,-Fix%20return%20value))
+- **Workflow Polling API**: We added a new API endpoint for checking workflow execution results programmatically ([#5061](https://github.com/mastra-ai/mastra/releases#:~:text=corresponding%20test%20updates.-,%235061,-Fix%20the%20final))
+- **MCP Connection Stability**: We shipped multiple improvements to streamable HTTP connections ([#5088](https://github.com/mastra-ai/mastra/releases#:~:text=over%20streamable%20HTTP.-,%235088,-Improve%20MCP%20connection), [#5089](https://github.com/mastra-ai/mastra/releases#:~:text=MCP%20connection%20handling.-,%235089,-Add%20MCP%20Bar))
+
+Find the full release log [here](https://github.com/mastra-ai/mastra/releases/tag/%40mastra%2Fcore%400.10.6).

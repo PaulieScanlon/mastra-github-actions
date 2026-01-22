@@ -1,0 +1,97 @@
+---
+title: "Mastra Changelog 2025-07-03"
+publishedAt: "2025-07-03"
+author: "Shane Thomas"
+summary: "Agent Network (vNext), workflow cancellation, and custom memory model support highlight this week's Mastra updates."
+draft: false
+categories: "changelog"
+---
+
+Another exciting week at Mastra! We're excited to announce vNext of Agent Network and workflow improvements that our users have been asking for.
+
+Let's dive into this week's updates.
+
+## Agent Network (vNext)
+
+Mastra's **AgentNetwork** is an agent and workflow orchestration layer -- in other words, a multi-agent primitive. You pass it a set of agents and workflows, and it decides which ones to call in which order with what inputs. We shipped an initial version back in March, but have iterated a lot since then. Now, it uses Mastra workflows, and we've seen performance improvement on routing, and have additional. We're removing the `experimental` tag -- go ahead and use it!
+
+Here's a quick demo:
+
+<iframe
+  width="100%"
+  height="400"
+  src="https://www.youtube.com/embed/OVGyZ1poGU8"
+  title="Agent Network (vNext) Demo"
+  frameBorder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen
+  className="rounded-lg"
+></iframe>
+
+In terms of when to use these, there's a spectrum from workflows (deterministic but less powerful) to agents running in a loop (more powerful, less deterministic) to multi-agent primitives (even more powerful, even less deterministic). 
+
+Some features of the new Agent Network:
+
+- **Converting unstructured inputs**: Turning natural language into structured tasks
+- **Dynamic collaboration**: You can pass a set of agents with different memories, instructions, and tool calling capabilities
+- **Context-aware routing**: Making decisions based on conversation history and memory
+
+**Two powerful methods for different use cases:**
+
+```typescript
+// Single task execution
+const result = await network.generate("Tell me about Tokyo", {
+  runtimeContext,
+});
+
+// Complex multi-step tasks - orchestrates multiple primitives
+const result = await network.loop(
+  "Research the top 3 cities in Japan, get their weather, and write a travel guide",
+  { runtimeContext },
+);
+```
+
+**Key improvements in vNext:**
+
+- **New `.generate()` method**: Reflects API of the underlying agent APIs
+- **Improved routing**: Better primitive selection based on descriptions and input schemas
+- **Memory-driven intelligence**: Uses conversation context for better routing decisions
+
+Agent Network accepts any Mastra primitive - agents, workflows, and tools - creating unprecedented flexibility for building intelligent AI orchestration.
+
+[Get started with complete examples in our repository](https://mastra.ai/docs/agents/networks).
+
+## Workflows
+
+### Workflow Cancellation Support
+
+We've added a highly requested feature: the ability to **programmatically cancel workflow runs**.
+
+```typescript
+// Cancel a running workflow
+await workflowRun.cancel();
+```
+
+This new `.cancel()` method enables workflows to be stopped mid-execution, giving you better control over long-running processes and resource management [#5534](https://github.com/mastra-ai/mastra/pull/5534).
+
+## Memory
+
+### Custom Language Models for Title Generation
+
+You can now **specify a custom language model** when generating titles in the Memory module, allowing you to override the default model set on the agent.
+
+```typescript
+const memory = new Memory({
+  options: {
+    titleModel: openai("gpt-4o-mini"), // Override the default model
+  },
+});
+```
+
+This gives you more control over memory operations and can help optimize costs by using different models for different memory tasks. [#5472](https://github.com/mastra-ai/mastra/pull/5472)
+
+---
+
+That's it for this week! As always, we'd love to hear your feedback and see what you're building with Mastra.
+
+Happy building! And remember: you can just deploy things. 🚀

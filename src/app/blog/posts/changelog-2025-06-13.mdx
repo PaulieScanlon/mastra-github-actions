@@ -1,0 +1,48 @@
+---
+title: "Mastra Changelog 2025-06-13"
+publishedAt: "2025-06-13"
+summary: "Cross-thread memory recall, universal schema support, and enhanced workflow observability."
+author: "Shane Thomas"
+draft: false
+categories: "changelogs"
+---
+
+Another busy week at Mastra. The team has been largely heads down, making moves on some big projects (big updates coming very soon 👀.) But that doesn't mean we've slowed down on shipping core platform improvements.
+
+Let's dig in…
+
+## Cross-Thread Memory Recall
+
+We added cross-thread semantic recall functionality to Mastra Memory, allowing memory retrieval across different threads belonging to the same resource, via a new `scope` key that can be set to `resource`.
+
+```typescript {5-7}
+const agent = new Agent({
+  memory: new Memory({
+    options: {
+      semanticRecall: {
+        topK: 3, // Retrieve 3 most similar messages
+        messageRange: 2, // Include 2 messages before and after each match
+        scope: 'resource', // Search across all threads for this user
+      },
+    },
+  }),
+});
+```
+
+Agents can now access memories from previous threads when working with the same user or resource. The 'resource' scope is currently supported by LibSQL, Postgres, and Upstash storage adapters.
+
+## Output Schema Support for Agents
+
+We previously sanitized input schemas with the `@mastra/schema-compat` utility. Now, we've extended that to support output schemas as well. 
+
+In addition, we've enabled support for any Zod schema (not just Zod objects) when you stream or generate objects. For example, you could generate an array. 
+
+## Other Updates
+
+- **Enhanced Workflow Observability**: Added log filtering with level-based filtering (debug, info, error) and infinite scrolling for workflow execution logs in the local playground ([#4706](https://github.com/mastra-ai/mastra/pull/4706), [#4768](https://github.com/mastra-ai/mastra/pull/4768)).
+- **Unified Developer UI Experience**: We're pulling some of the things we've done in Mastra cloud into the local playground for better consistency between Playground and Cloud UI. This includes simplified navigation structure and enhanced agent page layouts ([#4524](https://github.com/mastra-ai/mastra/pull/4524)).
+- **MCP Prompt Support**: Added support for MCP prompts to both `MCPServer` and `MCPClient` ([#4566](https://github.com/mastra-ai/mastra/pull/4566)).
+- **Storage API Pagination**: Implemented pagination support across PostgreSQL, MongoDB, and Upstash, with new paginated `getEvals` method ([#4652](https://github.com/mastra-ai/mastra/pull/4652), [#4631](https://github.com/mastra-ai/mastra/pull/4631)).
+- **LanceDB Vector Integration**: Added LanceDB as a new vector database provider option with `MastraVector` and `MastraStorage` interfaces ([#3324](https://github.com/mastra-ai/mastra/pull/3324)).
+
+Find the full release log [here](https://github.com/mastra-ai/mastra/releases/tag/%40mastra%2Fcore%400.10.4).

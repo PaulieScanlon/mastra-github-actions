@@ -1,0 +1,53 @@
+---
+title: "Mastra Changelog 2025-09-08"
+publishedAt: "2025-09-08"
+author: "Shane Thomas"
+summary: "Zod v4 support with v3 compatibility and more."
+draft: false
+categories: "changelogs"
+---
+
+
+This week we're thrilled to announce support for Zod v4 while maintaining full compatibility with Zod v3! Plus, we've revamped observability under **ai-tracing**, shipped improvements to our AI SDK v5 integration, and enhanced our CLI.
+
+**Release:** `@mastra/core@0.16.0`
+
+## Zod v4 support
+
+We've successfully added support for Zod v4 while maintaining backward compatibility with Zod v3. The upgrade enables you to use either Zod v3 or v4 in your projects seamlessly. We've updated our internal schema handling to use `toJsonSchema` from Zod and upgraded autoform (used in the developer playground) to v4 for improved TypeScript generics and type safety.
+
+This is not a breaking change; your existing Zod v3 schemas will continue to work perfectly alongside newer v4 schemas. See [PR #6942](https://github.com/mastra-ai/mastra/pull/6942) for implementation details.
+
+## Other shipped changes from the last week
+
+- **AI Tracing**: Rebranded observability as ai-tracing with new database schema for AI trace spans and JavaScript proxies for automatic tracing context injection. [PR #6954](https://github.com/mastra-ai/mastra/pull/6954), [PR #6967](https://github.com/mastra-ai/mastra/pull/6967)
+- **Message Conversion Utility**: Added `convertMessages` to @mastra/core for seamless conversion between Mastra, AI SDK v4/v5, and other message formats. [PR #6864](https://github.com/mastra-ai/mastra/pull/6864)
+- **Tool Call Accuracy Scorer**: New scorer using both LLM and code-based approaches for evaluating tool call accuracy with comprehensive documentation. [PR #6861](https://github.com/mastra-ai/mastra/pull/6861)
+- **Output Stream Processing**: Unified input and output processing with stateful stream transformations and improved documentation. [PR #6927](https://github.com/mastra-ai/mastra/pull/6927)
+- **ESM Compatibility**: Added esm-shim plugin to resolve module format ambiguity errors during `mastra dev`, ensuring compatibility between CommonJS and ES modules. [PR #6914](https://github.com/mastra-ai/mastra/pull/6914)
+- **Workflow AI Tracing**: Added detailed span types for workflows with automatic context propagation through nested agent and workflow calls. [PR #6971](https://github.com/mastra-ai/mastra/pull/6971)
+- **Client SDK Credentials**: Added 'credentials' option to client-js fetch requests for controlling cookie and authentication header behavior. [PR #6972](https://github.com/mastra-ai/mastra/pull/6972)
+
+For the complete list of changes, check out the [full release notes](https://github.com/mastra-ai/mastra/releases).
+
+## Events
+
+### ICYMI: Tickets for TypeScript AI just dropped
+
+The first conference for TypeScript AI developers is happening **November 6, 2025** at Convene 100 Stockton in San Francisco.
+
+
+🎟️ **Only 20 early bird tickets left** - secure yours now at [tsconf.ai](https://tsconf.ai/).
+
+Join industry leaders including Michael Grinich (CEO, WorkOS), Shawn "swyx" Wang, David Cramer (CPO, Sentry), our own Sam Bhagwat, Shane Thomas and Abhi Aiyer, and many others.
+
+### Other upcoming events
+
+- **Master AI Evaluation Workshop.** Learn to build and run comprehensive evals. [Register here](https://luma.com/o72wrgq8)
+
+Check out more workshops and meetups on our [events calendar](https://luma.com/mastra)
+
+
+That's all for this week!
+
+Happy building! 🚀

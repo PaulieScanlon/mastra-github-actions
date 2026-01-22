@@ -1,0 +1,34 @@
+---
+title: "Mastra Changelog 2025-09-18"
+publishedAt: "2025-09-18"
+author: "Shane Thomas"
+summary: "Resumable streams, structured output API change, bundling overhaul, and more."
+draft: false
+categories: "changelogs"
+---
+
+
+This week the team has been heads down shipping a ton of incremental improvements. We've shipped resumable streams for better connection handling, a bundling overhaul for improved monorepo support, and cleaned up a ton more.
+
+We also sold out all our [tsconf.ai](http://tsconf.ai) early bird tickets.
+
+**Release:** `@mastra/core@0.17.0`
+
+## Resumable Streams
+
+We've added support for resumable streams, allowing stream operations to be automatically retried if the connection is lost. The new server cache primitives enable streams to resume from where they left off rather than starting over, significantly improving user experience during connection issues. 
+
+The resumable stream flow works as follows: clients start streaming normally, the server caches each chunk, if connection is lost, clients can call `stream()` with the `runId` to get a TransformStream that first replays all cached chunks then pipes the live stream. 
+
+See [PR #7949](https://github.com/mastra-ai/mastra/pull/7949) for more details.
+
+## Other updates from the last week
+
+- **Structured Output API Change**: Deprecated 'output' property in favor of 'structuredOutput' for generateVNext and streamVNext methods, maintaining backward compatibility. [PR #7750](https://github.com/mastra-ai/mastra/pull/7750)
+- **Bundling Overhaul**: Standardized method signatures, enhanced project context handling, improved dependency analysis for monorepos with some breaking API changes. [PR #7619](https://github.com/mastra-ai/mastra/pull/7619)
+- **Async createRun**: Deprecated synchronous createRun() in favor of asynchronous createRunAsync() across the entire ecosystem. [PR #7897](https://github.com/mastra-ai/mastra/pull/7897)
+- **Legacy Networks Removed**: Deprecated and removed legacy AgentNetwork implementation in favor of new streaming architecture. [PR #7919](https://github.com/mastra-ai/mastra/pull/7919)
+- **Workflow Resource IDs**: Support for associating workflow runs with optional resourceId for filtering and management across storage providers. [PR #7792](https://github.com/mastra-ai/mastra/pull/7792)
+- **Custom Inngest Functions**: Support for user-supplied Inngest functions in serve/inngestServe, allowing custom functions alongside Mastra workflows. [PR #7900](https://github.com/mastra-ai/mastra/pull/7900)
+
+For the complete list of changes, check out the [full release notes](https://github.com/mastra-ai/mastra/releases/tag/%40mastra%2Fcore%400.17.0).

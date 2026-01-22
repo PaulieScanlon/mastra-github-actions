@@ -1,0 +1,109 @@
+---
+title: Mastra Changelog 2025-03-04
+publishedAt: "2025-03-04"
+summary: "Introducing Mastra Cloud and Mastra Voice (as well as a few other things)"
+author: "Shane Thomas"
+draft: false
+categories: "changelogs"
+---
+
+This week we launched [Mastra Cloud](https://mastra.ai/cloud-beta) Beta: a serverless agent environment with atomic deployments. Mastra Cloud lets you access your agents and workflows from anywhere and monitor their performance.
+
+We also added comprehensive voice capabilities to Agents, introduced tool-call based working memory, added CommonJS support, and made vector store improvements.
+
+## Mastra Cloud
+
+<div
+  style={{
+    position: "relative",
+    overflow: "hidden",
+    width: "100%",
+    paddingTop: "56.25%",
+  }}
+>
+  <iframe
+    style={{
+      position: "absolute",
+      top: 0,
+      left: 0,
+      bottom: 0,
+      right: 0,
+      width: "100%",
+      height: "100%",
+    }}
+    src="https://www.youtube.com/embed/fbmCQAd6at8?si=Q7XGFV4-H488LzV3&rel=0"
+    title="Mastra Cloud Demo"
+    frameBorder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowFullScreen
+  />
+</div>
+
+We are excited to introduce Mastra Cloud&mdash;a platform for instantly deploying your Mastra application and monitoring its performance.
+
+You’ll also be able to chat directly with your agents, see which models and tools they reference, and view detailed traces. We’ve found this to be particularly helpful in debugging allowing you to see every step of every interaction.
+
+Mastra Cloud is currently in beta. You can [request access here](https://mastra.ai/cloud-beta).
+
+## Mastra Voice
+
+With Mastra Voice, you can make your agents **`speak`** and **`listen`**. Whether you want to use a single provider for both speech-to-text and text-to-speech, or combine multiple providers for different operations, the implementation remains simple.
+
+For reference, this is how to build a helpful voice assistant that asks you how you’re doing:
+
+```tsx
+import { Agent } from "@mastra/core/agent";
+import { OpenAIVoice } from "@mastra/voice-openai";
+
+const agent = new Agent({
+  name: "Agent",
+  instructions: `You are a helpful assistant with voice capabilities.`,
+  model: openai("gpt-4o"),
+  voice: new OpenAIVoice(),
+});
+
+const audioStream = await agent.speak("How are you today?");
+```
+
+A list of supported providers and implementation details can be found [here](https://mastra.ai/blog/giving-agents-a-voice).
+
+## Memory enhancements
+
+Previously, Mastra only supported one way of handling working memory updates — through text stream tags where the LLM would include XML-like tags in its response.
+
+This worked well for text streaming but had limitations when using `toDataStream` (since parsing and masking XML tags from a data stream is complex.)
+
+The new update adds an alternative approach using tool calls instead of text tags:
+
+```tsx
+const memory = new Memory({
+  options: {
+    workingMemory: {
+      enabled: true,
+      use: "tool-call", // Use the new tool-based approach
+    },
+  },
+});
+```
+
+## CommonJS support
+
+The codebase was previously ESM-only, which caused compatibility issues for users working with CommonJS projects. We listened to user feedback and added dual module support across all Mastra packages by:
+
+- Adding CommonJS builds alongside existing ESM output
+- Updating build configurations to generate both .cjs and .js formats with proper type definitions
+- Ensuring all packages maintain full TypeScript support for both module systems
+
+## Vector store improvements
+
+The vector store APIs were modernized across all database implementations (PostgreSQL, Chroma, Astra) to use a more intuitive object-based parameter approach:
+
+```tsx
+await vectorDB.query({
+  indexName: "my_index",
+  queryVector: [0.1, 0.2],
+  topK: 10,
+});
+```
+
+This change improves type safety and developer experience while maintaining backward compatibility. The update also added support for multiple index types in PostgreSQL (HNSW, IVFFlat) and enhanced document storage capabilities in Chroma, allowing full-text documents to be stored alongside vectors.

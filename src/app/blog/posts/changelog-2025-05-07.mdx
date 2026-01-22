@@ -1,0 +1,57 @@
+---
+title: Mastra Changelog 2025-05-07
+publishedAt: "2025-05-07"
+summary: "Mastra's latest updates: vNext is live, AGUI integration, and linting."
+author: "Shane Thomas"
+draft: false
+categories: "changelogs"
+---
+
+## vNext Workflows is fully launched 🎉
+
+We officially switched over to vNext on May 6th, 2025. That means importing from **`@mastra/core/workflows`** will give you the **`vNext`** workflows.
+
+If you’re using the legacy workflow system, and you want to upgrade Mastra versions but you’re not yet ready to switch over, you can use the **`legacy`** import and prefix, eg:
+
+```tsx
+import { Step, Workflow } from '@mastra/core/workflows/legacy'
+import { Mastra } from '@mastra/core/mastra'
+const step1 = new Step(...)
+const workflow = new Workflow(...).step(step1).commit();
+
+const mastra = new Mastra({
+  // registering legacy workflows
+  legacy_workflows: {
+    myWorkflow: workflow
+  }
+})
+
+// accessing the workflow through the mastra class:
+mastra.legacy_getWorkflow('myWorkflow')
+```
+
+Read the full [blogpost](https://mastra.ai/blog/vNext-workflows) to learn all about vNext. Full docs [here](https://mastra.ai/en/docs/workflows-vnext/overview).
+
+## AGUI integration
+
+Mastra now works with AGUI clients. You can stream messages, trigger tool calls, and manage agents using a new adapter layer.
+
+This makes it straightforward to plug Mastra agents into AGUI-powered frontends.
+
+**What's new:**
+
+- Added an `AGUIAdapter` class for handling message streaming and tool invocations.
+
+- New `getAGUI()` helper for managing adapters.
+
+- Tests added for UUID generation and AGUI message conversion.
+
+## New: Comprehensive Linting for Mastra CLI
+
+We’ve added a robust linting system to the Mastra CLI to help you catch configuration and dependency issues before they become problems.
+
+The new linter includes rules for validating project setups and dependencies across different deployment platforms, making it easier to maintain healthy, production-ready projects.
+
+That’s all for now. Find the full release notes [here](https://github.com/mastra-ai/mastra/releases).
+
+Happy building 🚀

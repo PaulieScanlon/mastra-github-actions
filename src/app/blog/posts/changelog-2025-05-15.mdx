@@ -1,0 +1,98 @@
+---
+title: Mastra Changelog 2025-05-15
+publishedAt: "2025-05-15"
+summary: "Mastra's latest updates: A2A support, MCP updates, and more."
+author: "Shane Thomas"
+draft: false
+categories: "changelogs"
+---
+
+The team has shipped a ton of updates in the last week or so, including A2A support, MCP updates, and more. Let’s dig in…
+
+## Support for A2A
+
+Mastra now supports direct agent communication using an Agent-to-Agent (A2A) protocol based on Google’s A2A standard and JSON-RPC 2.0. Agents can now send messages, manage tasks, and interact with each other natively within the framework.
+
+Here’s a simple code example demonstrating how to use the new Agent-to-Agent (A2A) communication in Mastra:
+
+```tsx
+import { A2A } from "@mastra/client-js";
+
+// Initialize the A2A client
+const a2a = new A2A({ serverUrl: "https://your-mastra-server.com" });
+
+// Retrieve an agent card (info about another agent)
+const agentCard = await a2a.getAgentCard("agent-id-123");
+
+// Send a message to another agent
+await a2a.sendMessage({
+  to: "agent-id-123",
+  from: "my-agent-id",
+  content: "Hello from my agent!",
+});
+
+// Create and manage a task for another agent
+const task = await a2a.createTask({
+  agentId: "agent-id-123",
+  taskType: "processData",
+  payload: { data: [1, 2, 3] },
+});
+
+// Optionally, stream task updates
+const stream = a2a.streamTaskUpdates(task.id, (update) => {
+  console.log("Task update:", update);
+});
+```
+
+This example shows how to initiative the A2A client, retrieve information about another agent, send a message, create a task for another agent, and stream updates for that task.
+
+## MCP Updates
+
+### **New MCP Tool Compatibility Layer**
+
+Mastra now includes a tool compatibility layer to smooth out differences between models from various providers. Some models don’t fully support all zod or JSON schema properties, which can cause issues when using tools built for a different provider.
+
+With this update, Mastra automatically adapts tool schemas to match the target model’s capabilities, removing unsupported properties and appending key instructions to the tool description. This ensures tools work consistently, no matter which model you use.
+
+Compatibility classes are included for Google Gemini, Anthropic, OpenAI (including reasoning models), DeepSeek, and Meta.
+
+### Pass MCP servers to the Mastra class
+
+We now support passing MCP servers directly to the Mastra class, making it easier to configure and manage your server connections.
+
+This update also introduces new API endpoints for posting messages and adds Server-Sent Events (SSE) capabilities for real-time communication with MCP servers. Importantly, these enhancements maintain compatibility with older, deprecated MCP specifications, ensuring a smooth transition for existing projects.
+
+### getResources()
+
+The MCPClient class now includes a new `getResources()` method, allowing clients to easily retrieve resources from connected MCP servers.
+
+This update also comes with improved documentation and expanded tests, all while maintaining full backward compatibility with existing implementations.
+
+## Pass workflows directly to agents
+
+You can now pass workflows directly to agents in Mastra. This makes it easier to define and assign custom workflows for your agents at runtime, giving you more flexibility and control over agent behavior.
+
+For example:
+
+```tsx
+const myWorkflow = {
+  steps: [
+    { type: "task", name: "fetchData" },
+    { type: "task", name: "processData" },
+  ],
+};
+
+const agent = new Mastra.Agent({
+  name: "MyAgent",
+  workflow: myWorkflow,
+});
+```
+
+## Other updates
+
+- We added Klavis AI to the MCP registry list, expanding the ecosystem of verified MCP server providers for AI applications. (https://github.com/mastra-ai/mastra/pull/4201)
+- Mastra now handles jsonScheme implementations on Vercel tools ([#4200](https://github.com/mastra-ai/mastra/pull/4200))
+
+As always, you can find the complete release logs [here](https://github.com/mastra-ai/mastra/releases).
+
+Happy building 🚀

@@ -1,0 +1,83 @@
+---
+title: "Mastra Changelog 2025-02-10"
+summary: "Major updates including AI SDK integration, optimized bundle size through subpath imports, and enhanced storage layer with tracing capabilities"
+author: "Sam Bhagwat"
+publishedAt: "2025-02-10T18:05:00-08:00"
+draft: false
+categories: "changelogs"
+---
+
+This week we focused on streamlining Mastra's core architecture through better integration with AI SDK, optimized bundle sizes, and improved developer tooling.
+
+We've made significant changes to model routing, introduced subpath imports for better tree shaking, and added tracing capabilities to our storage layer.
+
+## Users should be using `ai-sdk` for model routing
+
+We removed Mastra's own model routing implementation (which was built on top of the Vercel AI SDK) and instead recommend using `ai-sdk` directly for model routing. This makes it clear that the happy path for Mastra is using AI SDK and Mastra together.
+
+Here's how to use AI SDK with Mastra:
+
+```typescript
+import { openai } from "@ai-sdk/openai";
+import { Agent } from "@mastra/core/agent";
+
+const agent = new Agent({
+  name: "WeatherAgent",
+  instructions: "Instructions for the agent...",
+  model: openai("gpt-4-turbo"), // Model comes directly from AI SDK
+});
+
+// Use the agent
+const result = await agent.generate("What is the weather like?");
+```
+
+Eventually we will also support alternate model routing providers, like Langchain, but that is not part of this release.
+
+In practice, what this means is that functions like `embed` and `embedMany` should be imported directly from `ai-sdk`, and agents now take models from `ai-sdk` directly, rather than `@mastra/core`.
+
+We removed the `LLM` object on the `Mastra` class.
+
+## New short-term working memory
+
+The short-term working memory system uses XML-like tags to track and update contextual information during conversations. When enabled, agents can maintain persistent information through a stream-based approach where memory updates are automatically managed through tagged data in the conversation stream, with the option to mask these updates from end users.
+
+## New Bundling System with Subpath Imports
+
+Mastra has added a bundling system using Rollup with tree shaking enabled to eliminate unused code across packages.
+
+In order to take advantage of this, we recommend using the recommended import syntax:
+
+```typescript
+import { Agent } from "@mastra/core/agent";
+```
+
+This is a change from the previous pattern of `import { Agent } from '@mastra/core';`.
+
+Along with the recent model routing changes, the core bundle size is down to 270kb from around 1MB.
+
+## DefaultStorage primitive with LibSQL
+
+Mastra now uses LibSQL as the default storage primitive. Here's how to use it:
+
+```typescript
+import { DefaultStorage } from "@mastra/core/storage";
+
+const storage = new DefaultStorage({
+  config: {
+    url: ":memory:",
+  },
+});
+
+// Initialize tables
+await storage.init();
+```
+
+The storage primitive handles:
+
+- Thread and message storage
+- Workflow snapshots
+- Evaluation results
+
+## Mastra storage includes tracing (soon)
+
+Mastra's LibSQL storage layer includes tracing, and we're working on adding a UI in `mastra dev` for it. We should merge this in the next couple of days: [https://github.com/mastra-ai/mastra/pull/1820](https://github.com/mastra-ai/mastra/pull/1820)

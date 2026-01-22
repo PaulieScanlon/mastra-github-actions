@@ -1,0 +1,99 @@
+---
+title: Mastra Changelog 2025-05-01
+publishedAt: "2025-05-01"
+summary: "Mastra's latest updates: vNext workflows, MongoDB vectorDB provider, Streamable HTTP MCP transport, and more."
+author: "Shane Thomas"
+draft: false
+categories: "changelogs"
+---
+
+Our latest release features major workflow updates, support for MongoDB, support for the newest MCP transport type, and more.
+
+## vNext workflows: the next generation of Mastra workflows
+
+In case you missed it in our [changelog](https://mastra.ai/blog/changelog-2025-04-24#vnext-workflows-new-control-flow-multi-engine-workflows-and-more) from last week, we’ve given workflows [a major overhaul](https://github.com/mastra-ai/mastra/tree/main/packages/core/src/workflows/vNext) based on user feedback. On Wednesday we released **`vNext`** workflows in alpha; now, we’re releasing **`vNext`** in stable (0.9.1).
+
+vNext will feature several improvements that largely address 3 big needs: stronger control flow, better type safety, and multi-engine support.
+
+Here’s a code sample that shows the new syntax:
+
+```tsx
+workflow
+  .then(fetchWeather)
+  .branch([
+    [
+      async ({ inputData }) => {
+        return inputData?.rainChance > 0.5;
+      }, // conditional
+      planIndoorActivities, // step or workflow
+    ],
+    [
+      async ({ inputData }) => {
+        return inputData?.rainChance <= 0.5;
+      },
+      planActivities, // step or workflow
+    ],
+  ])
+  .commit();
+```
+
+Here are some of the biggest improvements we’ve made around control flows:
+
+- Nested Workflows are now first-class citizens and the first primitive to reach for when composing any nested control flows or circular execution structures
+- Looping (**`while`** or **`until`**) accepts a single Step or Workflow and repeats until conditions are met
+- **`.branch()`** replaces if/else, providing clearer conditional paths. Each truthy condition executes in parallel. And **`.parallel()`** for condition-less parallel execution path branching.
+  - Branching creates a visual mental model of forking paths in a tree, which accurately represents workflow conditions
+- **`.then()`** is now the universal connector (**`.step()`** has been retired)
+- Mastra primitives, like agents and tools, can be transformed to workflow steps using **`createStep()`**
+- We no longer have the **`.after()`** command; users reported the loop-back syntax was hard to reason about. Now, in vNext, branching and dependencies are encapsulated in child workflows and explicit control flow changes.
+
+### Transitioning from legacy to vNext
+
+Next week, we’ll be switching over to vNext during our next official release on May 6th, 2025. That means importing from **`@mastra/core/workflows`** will give you the **`vNext`** workflows.
+
+If you’re using the legacy workflow system, and you want to upgrade Mastra versions but you’re not yet ready to switch over, you can use the **`legacy`** import and prefix, eg:
+
+```tsx
+import { Step, Workflow } from '@mastra/core/workflows/legacy'
+import { Mastra } from '@mastra/core/mastra'
+const step1 = new Step(...)
+const workflow = new Workflow(...).step(step1).commit();
+
+const mastra = new Mastra({
+  // registering legacy workflows
+  legacy_workflows: {
+    myWorkflow: workflow
+  }
+})
+
+// accessing the workflow through the mastra class:
+mastra.legacy_getWorkflow('myWorkflow')
+```
+
+Read the full [blogpost](https://mastra.ai/blog/vNext-workflows) to learn all about vNext. Full docs [here](https://mastra.ai/en/docs/workflows-vnext/overview).
+
+## New vectorDB provider: MongoDB
+
+We've [added](https://github.com/mastra-ai/mastra/pull/3823) MongoDB as a vector database provider, giving you another solid option for storing and retrieving vector embeddings in your applications. Mastra now has 12 vector DB integrations including Postgres/pgvector, libsql, Chroma, and many others.
+
+MongoDB has been pushing the envelope with vector search since early 2023 and we’re happy that you can now use MongoDB’s vector capabilities directly with Mastra.
+
+## Streamable HTTP MCP transport
+
+We now [support](https://github.com/mastra-ai/mastra/pull/3834) Streamable HTTP as an MCP transport.
+
+Previously, there were two ways to create an MCP server:
+
+1. Stdio transport (using a program running on your computer for the MCP tools)
+2. SSE transport (a web server hosted somewhere where you connect via URL)
+
+MCP [deprecated](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/206) the latter (SSE) and replaced it with Streamable HTTP. We now support this new Streamable HTTP MCP transport type.
+
+## Other updates
+
+- We recently added Docker as a new MCP registry option to The MCP registry registry
+- We’re hosting the very first Mastra virtual hackathon, [MASTRA.BUILD](https://mastra.ai/hackathon), from May 12th-16h. Cash prizes and tons of hands-on building. [Find the schedule & registration on our Lu.ma](https://lu.ma/x637wtj0).
+
+[Find the full release log for the past week here](https://github.com/mastra-ai/mastra/releases/tag/%40mastra%2Fcore%400.9.1).
+
+Happy building and see you next week… 🚀

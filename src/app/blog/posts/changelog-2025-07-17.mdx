@@ -1,0 +1,106 @@
+---
+title: "Mastra Changelog 2025-07-17"
+publishedAt: "2025-07-17"
+author: "Shane Thomas"
+summary: "New memory improvements, new CLI templates, reasoning display in playground, and major improvements across the board."
+draft: false
+categories: "changelogs"
+---
+
+Big news this week! We've achieved state-of-the-art performance on the LongMemEval benchmark with our memory improvements, reaching 80% accuracy. Plus, we're shipping new CLI templates, reasoning display in the playground, and major improvements across the board.
+
+Let's dive in:
+
+## Memory: State-of-the-art LongMemEval Performance
+
+We implemented the [LongMemEval benchmark](https://github.com/xiaowu0162/LongMemEval) and achieved **80% accuracy** — outperforming other specialized memory solutions. This breakthrough came entirely from improvements to semantic recall.
+
+![LongMemEval Benchmark Results](/memorybenchmark.png)
+
+### Improved Semantic Recall for SOTA Performance
+
+We restructured how recalled messages are presented to LLMs, achieving state-of-the-art results:
+
+- Messages are now grouped by date with clear time labels
+- Better distinction between current and past conversations
+- Improved formatting that includes contextual thread information
+
+These changes alone brought us to 80% accuracy on LongMemEval — proving that RAG absolutely works for agent memory when implemented correctly. [Read our deep dive on using RAG for agent memory](https://mastra.ai/blog/use-rag-for-agent-memory).
+
+### vNext Working Memory Updates
+
+As a bonus improvement from our research, we've shipped an experimental 'vNext' version of working memory with smarter update logic:
+
+```tsx
+// Enable the improved memory tool
+const memory = new Memory({
+  provider: myProvider,
+  options: {
+    workingMemory: {
+      enabled: true,
+      template: `Track user preferences and key details`,
+      version: "vnext", // Available now!
+    },
+  },
+});
+```
+
+The new API prevents accidental memory erasure during long conversations. Instead of wholesale replacements, agents now provide update reasons and can make targeted changes — a nice quality-of-life improvement for working memory users.
+
+## CLI & Playground: Major Usability Upgrades
+
+### Reasoning Display
+
+The playground now shows agent reasoning in real-time. Watch your agents think through problems step-by-step as they work — invaluable for debugging and understanding agent behavior.
+
+### Working Memory Improvements
+
+You can now view and edit working memory directly in the playground while interacting with agents. No more guessing what your agent remembers — see it and modify it live.
+
+We also added support for passing JSON schemas to working memory.
+
+### CLI Templates
+
+We've improved the CLI with better template support in the `create-mastra` command. These templates provide pre-configured starting points for common use cases, complete with example agents, tools, and workflows tailored to specific scenarios. Create templates with:
+
+```bash
+npx mastra@latest create --template
+```
+
+When you run `create-mastra`, you can now choose from different setups that include the right dependencies and boilerplate code for your project type. This makes it even faster to get started with Mastra.
+
+**Coming soon**: We're working on a library of ready-to-use Mastra templates for specific use cases. Stay tuned for the next release!
+
+## Other Important Updates
+
+### Networks
+
+- Agent networks now properly handle runtime context across all components
+- Fixed thread creation bugs in network `stream`, `generate`, and `loopStream` functions
+- Networks correctly route to vNext AgentNetwork instead of legacy versions
+
+### Workflows
+
+- Added runtime context persistence in workflow snapshots — workflows retain context after resuming from suspension
+- Fixed nested workflow execution within loops
+- Workflow status correctly reflects completion state
+
+### Deployer
+
+- Support for private packages as external dependencies
+- Toggle for installDependencies in Cloudflare deployer
+
+### Voice
+
+- OpenAI Realtime Voice now properly handles error responses from OpenAI
+
+### RAG
+
+- Removed cohere-ai dependency in favor of direct fetch calls
+- Fixed semantic recall system message formatting to include dates, times, and thread information
+
+That's all for this week! We're especially excited about the memory improvements — 80% on LongMemEval proves that RAG absolutely works for agent memory when done right.
+
+For the complete list of changes and fixes, check out the [full release notes](https://github.com/mastra-ai/mastra/releases/tag/%40mastra%2Fcore%400.10.15).
+
+Happy building! 🚀

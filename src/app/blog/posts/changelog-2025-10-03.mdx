@@ -1,0 +1,69 @@
+---
+title: "Mastra Changelog 2025-10-03"
+publishedAt: "2025-10-03"
+author: "Shane Thomas"
+summary: "New model router and automatic model fallbacks."
+draft: false
+categories: "changelogs"
+---
+
+
+We shipped a new model router! Use 600+ models from 45 providers with a single API. Plus automatic model fallbacks to keep your apps running when providers have issues.
+
+**Release:** `@mastra/core@0.20.0`
+
+## Model Router & Automatic Fallbacks
+
+### Model Router
+
+We've built a model router that gives you access to 600+ models from 45 providers through simple magic strings. No need to import provider-specific packages or dealing with different SDKs. Just use the `"provider/model"` pattern and Mastra handles the rest.
+
+```jsx
+// Use any model with a simple string
+const agent = new Agent({
+  name: "MyAgent",
+  model: "anthropic/claude-3.5-haiku"  // Or "openai/gpt-4o", "google/gemini-pro", etc.
+});
+
+```
+
+The router automatically detects API keys from environment variables and provides full TypeScript autocomplete for every model directly in your editor. The playground now includes a searchable model picker that also shows provider connection status and links to documentation.
+
+See [PR #8235](https://github.com/mastra-ai/mastra/pull/8235) and [PR #8332](https://github.com/mastra-ai/mastra/pull/8332) for implementation.
+
+### Automatic Model Fallbacks
+
+Define fallback chains to ensure your applications stay online even when providers experience issues. If one model fails, Mastra automatically switches to the next one in your list.
+
+```jsx
+// Define fallback chains for reliability
+const agent = new Agent({
+  name: "MyAgent",
+  model: ["anthropic/claude-3-opus", "openai/gpt-4o", "google/gemini-pro"]
+});
+
+```
+
+The playground displays which model from your fallback list was successfully used, giving you full visibility into your model routing.
+
+See [PR #7427](https://github.com/mastra-ai/mastra/pull/7427) and [PR #8167](https://github.com/mastra-ai/mastra/pull/8167) for implementation.
+
+## New Streaming Architecture is Now Default
+
+Our battle-tested `streamVNext` and `generateVNext` functions are now the standard `stream` and `generate`. This is a breaking change. If you're already using vNext functions, migration is trivial—just rename them. For those on original functions, Legacy variants preserve the old behavior.
+
+See our [full announcement](https://mastra.ai/blog/mastra-streaming) for the complete story behind this.
+
+## Other updates from the last week
+
+- **LangSmith Observability**: New observability package adapted from the Braintrust implementation for enhanced monitoring and tracing. [PR #8160](https://github.com/mastra-ai/mastra/pull/8160)
+- **OpenTelemetry Exporter**: Initial release of OpenTelemetry exporter to enable AI observability. [PR #8273](https://github.com/mastra-ai/mastra/pull/8273)
+- **Netlify Gateway Support**: Added NetlifyGateway class with dynamic URLs and token generation for enhanced deployment options. [PR #8331](https://github.com/mastra-ai/mastra/pull/8331)
+- **AI SDK Transformer**: New workflow transformer for seamless integration with Vercel's useChat hook in React applications. [PR #7829](https://github.com/mastra-ai/mastra/pull/7829)
+- **PostgreSQL SSL Support**: Added optional SSL configuration with improved type safety and error handling. [PR #8178](https://github.com/mastra-ai/mastra/pull/8178)
+
+For the complete list of changes, check out the [full release notes](https://github.com/mastra-ai/mastra/releases).
+
+That's all for this week!
+
+Happy building! 🚀

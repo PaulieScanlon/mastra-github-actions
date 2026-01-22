@@ -1,0 +1,69 @@
+---
+title: "Mastra Changelog 2025-01-10"
+publishedAt: "2025-01-10"
+summary: "Mastra's changelog for Dec 27th 2024 through Jan 10th, 2025"
+author: "Sam Bhagwat"
+draft: false
+categories: "changelogs"
+---
+
+
+Welcome to the Mastra Changelog.
+
+We’ll be publishing these every week, but since this is our first one, we’re covering ground from the last two weeks.
+
+Let's dive in.
+
+## Suspend/resume in workflows
+
+We’ve made it easier to build checkpoints, human-in-the-loop intervention, and/or monitoring into any of your workflows. You can simply call `suspend` inside any step (or between steps) in a workflow and `resume` it later.
+
+State is stored in the Postgres DB in the mastra engine.
+
+The mental model here is to think about `suspend` as an exception you're throwing, where the workflow will handle catching that exception and persisting state.
+
+## `mastra create` for new projects
+
+You can now build projects in a standalone way using `npm create mastra`.
+
+This will create a new project scaffold with directories and (if you want) examples. We've found this to be a cleaner DX for new users.
+
+While you can still initialize within an existing project (`mastra init`), `create` generates a ready-to-use project scaffold—complete with recommended directories, configuration, and boilerplate.
+
+## `mastra dev` for an interactive local dev server
+
+<iframe
+  width="560"
+  height="315"
+  src="https://www.youtube.com/embed/spGlcTEjuXY?rel=0"
+  title="Announcing Mastra 1.0"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowfullscreen
+></iframe>
+
+Here's Shane Thomas demoing Mastra Dev, a local development server for Mastra projects that helps you see and interact with all the agents, workflows, and tools within your Mastra application.
+
+It includes:
+
+- an agents playground so you can chat with your agents
+- `/text` and `/generate` endpoints for each of your agents so you can test them via `curl` or call them over the network
+- visual workflow diagrams for each workflow
+- endpoints for each of your workflows so you can test them via `curl` or call them over the network
+- a registry of all of your tools
+
+`mastra dev` makes it easier to build, understand, and debug your agents and workflows.
+
+## Mastra Examples: basic building blocks for anyone to get started
+
+![Mastra Examples](/2025-01-10-examples.gif)
+
+To make it easy for anyone to start building projects with Mastra, we released a collection of short examples of all the basic AI engineering Mastra primitives: things like generating and streaming text, describing images, calling a workflow, chunking text, and even implementing basic RAG (retrieval-automated generation) systems.
+
+Each example links to a subdirectory of a Github repo, so you can `npm install` and run them locally.
+
+## API endpoint improvements
+
+Previously, Mastra offered a single "generate" API for text responses with two flags for structured output and streaming.
+
+We realized having four combinations of flags was confusing, so we've split `generate` into two separate APIs: `generate` and `stream`, each with a flag for structured output.
